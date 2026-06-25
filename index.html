@@ -3,197 +3,59 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
+  <title>Quiply</title>
+  <meta name="description" content="Random quotes over beautiful imagery — pick a category and vibe." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      width: 100vw;
-      height: 100dvh;
-      overflow: hidden;
-      background: #111;
-    }
-
-    /* ── Waterfall shimmer (visible while image loads) ── */
-    .shimmer {
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      background: linear-gradient(180deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%);
-      background-size: 100% 200%;
-      animation: waterfall 1.4s ease-in-out infinite;
-      transition: opacity .8s ease;
-    }
-
-    .shimmer.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    @keyframes waterfall {
-      0%   { background-position: 0% 0%; }
-      100% { background-position: 0% 200%; }
-    }
-
-    .shimmer::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,.04) 50%, transparent);
-      background-size: 200% 100%;
-      animation: sheen 1.8s ease-in-out infinite;
-    }
-
-    @keyframes sheen {
-      0%   { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-
-    /* ── Full-page image ── */
-    .bg-image {
-      position: fixed;
-      inset: 0;
-      z-index: 2;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0;
-      transition: opacity 1s ease;
-    }
-
-    .bg-image.loaded { opacity: 1; }
-
-    /* ── Dark overlay so text stays readable ── */
-    .overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 3;
-      background: rgba(0, 0, 0, .35);
-      pointer-events: none;
-    }
-
-    /* ── Centered text ── */
-    .center-text {
-      position: fixed;
-      inset: 0;
-      z-index: 4;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-    }
-
-    .center-text h1 {
-      font-size: clamp(2rem, 8vw, 5rem);
-      font-weight: 600;
-      color: #fff;
-      letter-spacing: -0.02em;
-      text-shadow: 0 2px 30px rgba(0,0,0,.5);
-      user-select: none;
-    }
-
-    /* ── Refresh button (top-right) ── */
-    .refresh-btn {
-      position: fixed;
-      top: 24px;
-      right: 24px;
-      z-index: 5;
-      width: 48px;
-      height: 48px;
-      border: none;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, .15);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      color: #fff;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background .25s ease, transform .25s ease;
-    }
-
-    .refresh-btn:hover {
-      background: rgba(255, 255, 255, .28);
-      transform: scale(1.08);
-    }
-
-    .refresh-btn:active { transform: scale(.95); }
-
-    .refresh-btn svg {
-      transition: transform .5s ease;
-    }
-
-    .refresh-btn:hover svg {
-      transform: rotate(180deg);
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
+  <!-- Loading shimmer -->
   <div class="shimmer" id="shimmer"></div>
+
+  <!-- Background image -->
   <img class="bg-image" id="photo" alt="Random background" />
+
+  <!-- Readability overlay -->
   <div class="overlay"></div>
 
+  <!-- Centered quote -->
   <div class="center-text">
-    <h1>Hello World</h1>
+    <h1 id="quote"></h1>
   </div>
 
-  <button class="refresh-btn" id="refreshBtn" aria-label="Load new image">
-    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
-         fill="none" stroke="currentColor" stroke-width="2"
-         stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="23 4 23 10 17 10"></polyline>
-      <polyline points="1 20 1 14 7 14"></polyline>
-      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
-      <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
-    </svg>
-  </button>
+  <!-- Top-right toolbar -->
+  <div class="toolbar">
+    <!-- Category picker -->
+    <div class="category-wrapper">
+      <button class="icon-btn category-btn" id="categoryBtn" aria-label="Choose category">
+        <!-- Feather: layers icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+      </button>
+      <div class="dropdown" id="dropdown"></div>
+    </div>
 
-  <script>
-    const photo   = document.getElementById('photo');
-    const shimmer = document.getElementById('shimmer');
-    const btn     = document.getElementById('refreshBtn');
+    <!-- Refresh -->
+    <button class="icon-btn refresh-btn" id="refreshBtn" aria-label="New image & quote">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"></polyline>
+        <polyline points="1 20 1 14 7 14"></polyline>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+        <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
+      </svg>
+    </button>
+  </div>
 
-    function getDimensions() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      return {
-        w: Math.min(Math.round(window.innerWidth  * dpr), 4000),
-        h: Math.min(Math.round(window.innerHeight * dpr), 4000)
-      };
-    }
-
-    function loadImage() {
-      shimmer.classList.remove('hidden');
-      photo.classList.remove('loaded');
-
-      const { w, h } = getDimensions();
-      const url = `https://picsum.photos/${w}/${h}?random=${Date.now()}`;
-
-      const tmp = new Image();
-      tmp.onload = () => {
-        photo.src = url;
-        requestAnimationFrame(() => {
-          photo.classList.add('loaded');
-          shimmer.classList.add('hidden');
-        });
-      };
-      tmp.onerror = () => setTimeout(loadImage, 1500);
-      tmp.src = url;
-    }
-
-    btn.addEventListener('click', loadImage);
-    loadImage();
-
-    let resizeTimer;
-    window.addEventListener('resize', () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(loadImage, 500);
-    });
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
