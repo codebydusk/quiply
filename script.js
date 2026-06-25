@@ -23,6 +23,14 @@ const dropdown    = document.getElementById('dropdown');
 
 /* ── State ── */
 let currentCategory = CATEGORIES[0];
+const savedCategoryFile = localStorage.getItem('quiply_category');
+if (savedCategoryFile) {
+  const found = CATEGORIES.find(c => c.file === savedCategoryFile);
+  if (found) {
+    currentCategory = found;
+  }
+}
+
 let linesCache = {};   // { fileName: string[] }
 
 /* ── Build dropdown items ── */
@@ -30,7 +38,7 @@ function buildDropdown() {
   dropdown.innerHTML = '';
   CATEGORIES.forEach((cat) => {
     const btn = document.createElement('button');
-    btn.innerHTML = `<span class="dot"></span>${cat.label}`;
+    btn.textContent = cat.label;
     if (cat.file === currentCategory.file) btn.classList.add('active');
     btn.addEventListener('click', () => selectCategory(cat));
     dropdown.appendChild(btn);
@@ -39,9 +47,10 @@ function buildDropdown() {
 
 function selectCategory(cat) {
   currentCategory = cat;
+  localStorage.setItem('quiply_category', cat.file);
   closeDropdown();
   buildDropdown();
-  showRandomQuote();
+  refresh();
 }
 
 /* ── Dropdown toggle ── */
@@ -78,21 +87,7 @@ async function getLines(fileName) {
   }
 }
 
-/* ── Show a random quote ── */
-async function showRandomQuote() {
-  quoteEl.classList.remove('visible');
-
-  // Small delay so the fade-out is visible before swapping text
-  await new Promise((r) => setTimeout(r, 200));
-
-  const lines = await getLines(currentCategory.file);
-  const line = lines[Math.floor(Math.random() * lines.length)];
-  quoteEl.textContent = `"${line}"`;
-
-  requestAnimationFrame(() => quoteEl.classList.add('visible'));
-}
-
-/* ── Image loading ── */
+/* ── Image loading — returns a Promise that resolves when image is shown ── */
 function getDimensions() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   return {
@@ -102,28 +97,42 @@ function getDimensions() {
 }
 
 function loadImage() {
-  shimmer.classList.remove('hidden');
-  photo.classList.remove('loaded');
+  return new Promise((resolve) => {
+    shimmer.classList.remove('hidden');
+    photo.classList.remove('loaded');
 
-  const { w, h } = getDimensions();
-  const url = `https://picsum.photos/${w}/${h}?random=${Date.now()}`;
+    const { w, h } = getDimensions();
+    const url = `https://picsum.photos/${w}/${h}?random=${Date.now()}`;
 
-  const tmp = new Image();
-  tmp.onload = () => {
-    photo.src = url;
-    requestAnimationFrame(() => {
-      photo.classList.add('loaded');
-      shimmer.classList.add('hidden');
-    });
-  };
-  tmp.onerror = () => setTimeout(loadImage, 1500);
-  tmp.src = url;
+    const tmp = new Image();
+    tmp.onload = () => {
+      photo.src = url;
+      requestAnimationFrame(() => {
+        photo.classList.add('loaded');
+        shimmer.classList.add('hidden');
+        resolve();
+      });
+    };
+    tmp.onerror = () => {
+      setTimeout(() => loadImage().then(resolve), 1500);
+    };
+    tmp.src = url;
+  });
 }
 
-/* ── Refresh: new image + new quote ── */
-function refresh() {
-  loadImage();
-  showRandomQuote();
+/* ── Refresh: hide quote → load image → show new quote ── */
+async function refresh() {
+  // 1. Hide the quote immediately
+  quoteEl.classList.remove('visible');
+
+  // 2. Wait for new image to fully load and appear
+  await loadImage();
+
+  // 3. Only then fetch + show the new quote
+  const lines = await getLines(currentCategory.file);
+  const line = lines[Math.floor(Math.random() * lines.length)];
+  quoteEl.textContent = `"${line}"`;
+  requestAnimationFrame(() => quoteEl.classList.add('visible'));
 }
 
 refreshBtn.addEventListener('click', refresh);

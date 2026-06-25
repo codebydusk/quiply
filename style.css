@@ -80,6 +80,7 @@ body {
 }
 
 .center-text h1 {
+  font-family: 'Metamorphous', serif;
   font-size: clamp(1.4rem, 4vw, 3rem);
   font-weight: 600;
   color: #fff;
@@ -97,6 +98,29 @@ body {
 .center-text h1.visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* ── Top-left Logo ── */
+.logo {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
+  user-select: none;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+
+.logo img {
+  width: 42px;
+  height: 42px;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
 }
 
 /* ── Top-right toolbar ── */
@@ -206,17 +230,4 @@ body {
 .dropdown button.active {
   background: rgba(255,255,255,.14);
   color: #fff;
-}
-
-.dropdown button .dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(255,255,255,.3);
-  flex-shrink: 0;
-}
-
-.dropdown button.active .dot {
-  background: #fff;
-  box-shadow: 0 0 6px rgba(255,255,255,.5);
 }
