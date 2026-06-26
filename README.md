@@ -66,9 +66,9 @@ quiply/
 ├── robots.txt
 ├── sitemap.xml
 └── assets/
-    ├── style.css           # All styles
+    ├── style.css           # All styles (fully commented)
     ├── script.js           # All logic (fully commented)
-    ├── logo.svg            # App icon
+    ├── logo.svg            # App icon (SVG for quality)
     └── data/               # Quote databases (JSON arrays of strings)
         ├── bad_advice.json
         ├── chaos.json

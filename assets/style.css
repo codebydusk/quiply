@@ -1,4 +1,17 @@
-/* ── Reset ── */
+/**
+ * Quiply — style.css
+ *
+ * Responsibilities:
+ *  - Define global resets and typography settings
+ *  - Handle layout for the full-page image, text overlays, and toolbar
+ *  - Style the custom category dropdown picker with glassmorphic effects
+ *  - Manage loading animations (shimmer background and pulsing logo)
+ *  - Implement responsive mobile layouts (relocating toolbar and adjusting dropdown)
+ */
+
+/* ═══════════════════════════════════════════
+   RESET & BASE STYLES
+   ═══════════════════════════════════════════ */
 *,
 *::before,
 *::after {
@@ -17,7 +30,9 @@ body {
     user-select: none;
 }
 
-/* ── Loading Animation ── */
+/* ═══════════════════════════════════════════
+   LOADING ANIMATION
+   ═══════════════════════════════════════════ */
 .shimmer {
     position: fixed;
     inset: 0;
@@ -90,7 +105,9 @@ body {
     }
 }
 
-/* ── Full-page image ── */
+/* ═══════════════════════════════════════════
+   FULL-PAGE IMAGE
+   ═══════════════════════════════════════════ */
 .bg-image {
     position: fixed;
     inset: 0;
@@ -111,7 +128,9 @@ body {
 }
 
 
-/* ── Centered quote ── */
+/* ═══════════════════════════════════════════
+   CENTERED QUOTE
+   ═══════════════════════════════════════════ */
 .center-text {
     position: fixed;
     inset: 0;
@@ -143,7 +162,9 @@ body {
     transform: translateY(0);
 }
 
-/* ── Top-left Logo ── */
+/* ═══════════════════════════════════════════
+   BRANDING & LOGO
+   ═══════════════════════════════════════════ */
 .logo {
     position: fixed;
     top: 24px;
@@ -166,7 +187,9 @@ body {
     filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
 }
 
-/* ── Top-right toolbar ── */
+/* ═══════════════════════════════════════════
+   TOOLBAR & BUTTONS
+   ═══════════════════════════════════════════ */
 .toolbar {
     position: fixed;
     top: 24px;
@@ -221,7 +244,9 @@ body {
     transform: rotate(180deg);
 }
 
-/* ── Category picker ── */
+/* ═══════════════════════════════════════════
+   CATEGORY DROPDOWN
+   ═══════════════════════════════════════════ */
 .category-wrapper {
     position: relative;
 }
@@ -308,7 +333,9 @@ body {
     background: rgba(255, 255, 255, .1);
 }
 
-/* ── Footer ── */
+/* ═══════════════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════════════ */
 .footer {
     position: fixed;
     bottom: 12px;
@@ -340,7 +367,9 @@ body {
     display: inline;
 }
 
-/* ── Mobile layout ── */
+/* ═══════════════════════════════════════════
+   MOBILE LAYOUT
+   ═══════════════════════════════════════════ */
 @media (max-width: 600px) {
     /* Move toolbar from top-right to bottom-right so it doesn't overlap the logo */
     .toolbar {
