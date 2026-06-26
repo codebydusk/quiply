@@ -19,7 +19,7 @@ Just beautifully presented thoughts.
 ## ✨ Features
 
 - 🧠 **Persistent Shuffle Engine** — Every category behaves like a shuffled deck of cards. Quotes never repeat until the deck is exhausted.
-- 🎲 **Surprise Me!** — A mathematically fair global shuffle where every quote has an equal chance of appearing.
+- 🎲 **Today's Quiply** — A mathematically fair global shuffle where every quote has an equal chance of appearing.
 - ✍️ **Original Quote Packs** — Thousands of curated quotes across humor, romance, chaos, workplace survival, and more.
 - 🖼️ **Immersive Photography** — Beautiful full-screen backgrounds fetched dynamically from Lorem Picsum.
 - 📋 **One-click Copy** — Complete with randomized copy-success messages.
@@ -55,7 +55,7 @@ Quiply takes a different approach.
 
 Every category is treated as a **shuffled deck**. Quotes are dealt one by one until every quote has been seen exactly once, creating a much more natural browsing experience.
 
-The default **Surprise Me!** mode extends this concept even further by combining every quote pack into one global deck, giving every quote in the application the exact same mathematical probability of appearing.
+The default **Today's Quiply** mode extends this concept even further by combining every quote pack into one global deck, giving every quote in the application the exact same mathematical probability of appearing.
 
 ---
 
