@@ -1,104 +1,156 @@
 ![Quiply](assets/logo.svg)
 
-# QUIPLY - Tiny thoughts. Big personalities.
+# QUIPLY
 
-> *Wit, wisdom, and wonderfully questionable life advice — beautifully presented.*
+> **Quiply is what happens when a quote generator develops a personality.**
+>
+> *Tiny thoughts. Big personalities. Zero repeats.*
 
-Quiply is a minimalist quote app that pairs curated, hand-picked quotes with stunning full-screen photography. Pick a category, vibe out, copy or download the moment.
+A minimalist quote experience featuring **original, hand-curated quote packs**, stunning full-screen photography, and a persistent shuffle engine that feels like drawing cards from a perfectly shuffled deck.
 
-🌐 **Live:** [codebydusk.github.io/quiply](https://codebydusk.github.io/quiply)
+No repeated quotes.
+No endless random loops.
+Just beautifully presented thoughts.
+
+🌐 **Live Demo:** https://codebydusk.github.io/quiply
 
 ---
 
 ## ✨ Features
 
-- 🖼️ **Immersive backgrounds** — hi-res photos from [Lorem Picsum](https://picsum.photos/), sized to your screen and pixel density
-- 🧠 **Persistent Cryptographic Shuffle** — Every category uses a unified, cryptographically secure shuffle deck. Your progress is saved locally, meaning you will *never* see repeats across sessions until you completely exhaust a category. The global "Random" mode merges all quotes into a massive master deck that automatically triggers a fresh shuffle every 24 hours.
-- 📋 **Copy** — one tap to grab the quote text to your clipboard
-- 📥 **Download / Share** — on desktop, saves a ready-to-share PNG. On mobile, instantly opens the native share sheet with the image.
-- ⌨️ **Keyboard shortcuts** — press **Space** or **R** to refresh instantly
-- 💾 **Remembers your category** — your last selection is saved locally
-- 🌙 **Dark, glassmorphic UI** — clean, unobtrusive, and fully responsive
+- 🧠 **Persistent Shuffle Engine** — Every category behaves like a shuffled deck of cards. Quotes never repeat until the deck is exhausted.
+- 🎲 **Surprise Me!** — A mathematically fair global shuffle where every quote has an equal chance of appearing.
+- ✍️ **Original Quote Packs** — Thousands of curated quotes across humor, romance, chaos, workplace survival, and more.
+- 🖼️ **Immersive Photography** — Beautiful full-screen backgrounds fetched dynamically from Lorem Picsum.
+- 📋 **One-click Copy** — Complete with randomized copy-success messages.
+- 📥 **Download / Share** — Save a beautifully rendered PNG or share directly on supported mobile browsers.
+- 💾 **Persistent Progress** — Your categories, decks, and discoveries continue exactly where you left them.
+- ⌨️ **Keyboard Shortcuts** — Press **Space** or **R** for the next quote.
+- 🌙 **Zero Dependencies** — Pure HTML, CSS and JavaScript.
 
 ---
 
-## For Users
+## 📦 Quote Packs
 
-**How to use it:**
+| Collection | Includes |
+|------------|----------|
+| 🌪 Core | NO · Chaos · Questionable Decisions · Character Development |
+| ❤️ Relationships | Hopeless Romantic |
+| 🎭 Life | Corporate Survival · Friendly Fire · Today's Lies |
 
-1. Open the app.
-2. Pick a category from the top-right menu (or let **Today's Quiply** surprise you).
-3. Hit the **↻ refresh** button (or press **Space** / **R**) for a new quote + background.
-4. Like what you see? Hit **copy** to grab the text, or **↓ download / share** to save it as a PNG (or share it directly on mobile).
-
-*Note: You can track your progress through any deck by opening the category menu. The currently active category will display exactly how many quotes you've discovered and how many remain before it reshuffles!*
-
-**Categories:**
-
-| Group | Categories |
-|---|---|
-| Core | NO · Chaos · Questionable Decisions · Character Development |
-| Relationships | Hopeless Romantic |
-| Life | Corporate Survival · Friendly Fire · Today's Lies |
-| Settings | Flush all (Resets all saved progress and clears local storage) |
-
-Your last selected category and exact progress through the deck is automatically remembered for next time.
+More collections are planned.
 
 ---
 
-## For Developers
+## 🤔 Why Quiply?
 
-### Tech Stack
+Most quote generators repeatedly roll a random number.
 
-Quiply is intentionally simple — **zero dependencies, zero build steps.**
+That approach causes two problems:
 
-| Layer | Technology |
-|---|---|
-| Structure | Vanilla HTML5 |
-| Styling | Vanilla CSS3 (custom properties, `backdrop-filter`, `clamp()`) |
-| Logic | Vanilla JavaScript (ES2022+) |
-| Images | [Lorem Picsum](https://picsum.photos/) — fetched as blob URLs |
-| Fonts | Google Fonts — Cormorant Garamond (quotes) · Martel Sans (UI) |
+- You often see the same quotes again and again.
+- Smaller quote collections appear far more frequently than larger ones.
 
-### Project Structure
+Quiply takes a different approach.
 
-```
-quiply/
-├── index.html              # Single-page app shell
-├── manifest.webmanifest    # PWA manifest
-├── robots.txt
-├── sitemap.xml
-└── assets/
-    ├── style.css           # All styles (fully commented)
-    ├── script.js           # All logic (fully commented)
-    ├── logo.svg            # App icon (SVG for quality)
-    └── data/               # Quote databases (JSON arrays of strings)
-        ├── bad_advice.json
-        ├── chaos.json
-        ├── emotional_damage.json
-        ├── horoscope.json
-        ├── insults.json
-        ├── love.json
-        ├── no.json
-        └── office_excuses.json
-```
+Every category is treated as a **shuffled deck**. Quotes are dealt one by one until every quote has been seen exactly once, creating a much more natural browsing experience.
 
-### Local Development
+The default **Surprise Me!** mode extends this concept even further by combining every quote pack into one global deck, giving every quote in the application the exact same mathematical probability of appearing.
 
-Because Quiply uses `fetch()` to load JSON data assets, you can't open `index.html` directly via `file:///` (browser CORS policy blocks it). Serve it over a local HTTP server instead:
+---
+
+## 🚀 Quick Start
 
 ```bash
+git clone https://github.com/codebydusk/quiply.git
+cd quiply
+
 # Using npx (Node.js)
 npx http-server . -p 8080
 
-# Using bunx (Bun | https://bun.sh)
+# Or using bunx (Bun | https://bun.sh)
 bunx http-server . -p 8080
 
 # Or using Python
 python -m http.server 8080
+````
+
+Then open:
+
+http://localhost:8080
+
+---
+
+## 🛠 Tech Stack
+
+| Layer        | Technology                       |
+| ------------ | -------------------------------- |
+| UI           | Vanilla HTML5 + CSS3             |
+| Logic        | Vanilla JavaScript (ES2022+)     |
+| Images       | Lorem Picsum                     |
+| Fonts        | Cormorant Garamond · Martel Sans |
+| Dependencies | **None**                         |
+
+---
+
+## 📂 Project Structure
+
+```text
+quiply/
+├── index.html
+├── manifest.webmanifest
+├── robots.txt
+├── sitemap.xml
+└── assets/
+    ├── style.css
+    ├── script.js
+    ├── logo.svg
+    └── data/
 ```
 
-Then open `http://localhost:8080`.
+---
+
+## ⚙️ Under the Hood
+
+Quiply is intentionally simple, but the quote engine is surprisingly sophisticated.
+
+### Persistent Shuffle Decks
+
+Instead of randomly selecting quotes forever, Quiply creates an integer deck for every category, shuffles it once using *Fisher–Yates*, and persists the current position locally.
+
+This guarantees:
+
+* no premature repeats
+* equal distribution
+* instant O(1) retrieval
+* seamless continuation across browser sessions
+
+### Secure Randomness
+
+Whenever available, Quiply uses the browser's **Web Crypto API** to generate unbiased shuffle permutations, automatically falling back to `Math.random()` when secure randomness isn't available.
+
+### Today's Quiply
+
+Rather than choosing a random category first, Quiply merges every quote pack into one global deck so that **every quote in the application has the same probability of appearing**, regardless of category size.
+
+---
+
+## ❤️ Contributing
+
+The quote packs are the heart of Quiply.
+
+If you have an original quote, a clever roast, chaotic wisdom, terrible advice, or anything delightfully memorable, we'd love a Pull Request.
+
+Please keep submissions:
+
+* Original (or public domain)
+* Human-written
+* Short and memorable
+* Appropriate for the selected category
+
+---
+
+## For Nerds
 
 ### Core Architecture
 
@@ -119,7 +171,7 @@ graph TD
 
 #### 2. Persistent Decks (`ShuffleDeck`)
 
-Instead of just randomly picking string elements from a JSON array, Quiply generates a lightweight array of integers mapping to the exact length of the category `[0, 1, 2 ... N]`. 
+Instead of just randomly picking string elements from a JSON array, Quiply generates a lightweight array of integers mapping to the exact length of the category `[0, 1, 2 ... N]`.
 
 This integer array is shuffled, and items are dealt sequentially. A pointer (`index`) tracks exactly where the user left off. This extremely lightweight state object is committed to `localStorage` after every draw.
 
@@ -142,11 +194,11 @@ sequenceDiagram
     App-->>User: Display Quote & Progress
 ```
 
-#### 3. The Global "Surprise Me!" Deck (`GlobalQuoteManager`)
+#### 3. The Global "Today's Quiply" Deck (`GlobalQuoteManager`)
 
 The default category solves a common probability flaw in simplistic quote generators. If the engine first picked a random category and *then* a random quote, it would massively bias the results toward smaller categories. Conversely, simply flattening every file into one array biases the results toward the largest categories.
 
-To solve this, Quiply uses an ephemeral `GlobalQuoteManager` that mathematically normalizes representation. It samples exactly 15 random quotes from *every* active JSON quote file, aggregates them into a unified pool, and then securely extracts a fresh, perfectly blended subset of 100 quotes. 
+To solve this, Quiply uses an ephemeral `GlobalQuoteManager` that mathematically normalizes representation. It samples exactly 15 random quotes from *every* active JSON quote file, aggregates them into a unified pool, and then securely extracts a fresh, perfectly blended subset of 100 quotes.
 
 The `ShuffleDeck` then manages an integer map for this 100-quote subset. Once exhausted, a brand new permutation of 100 quotes is generated from scratch, meaning the "Random" mode stays endlessly fresh without repeating quotes within a session.
 
@@ -166,13 +218,6 @@ graph LR
 #### 5. Self-Healing State Recovery
 
 The core `refresh()` lifecycle is wrapped in a resilient recovery layer. If the engine encounters *any* runtime failure (such as parsing a corrupted `localStorage` state injected by a third-party extension), it immediately catches the error, triggers the `flushAll()` logic to wipe the broken storage, and seamlessly attempts a fresh retry without exposing a crash to the user.
-
-### Deployment
-
-Quiply deploys to any static host. Just point the root of the repository as the publish directory.
-
-- **GitHub Pages:** push to `main`, set Pages source to `/ (root)`.
-- **Vercel / Netlify:** connect the repo, no build command needed.
 
 ---
 
