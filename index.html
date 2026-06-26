@@ -1,68 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quiply</title>
-  <meta name="description" content="Random quotes over beautiful imagery — pick a category and vibe." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Metamorphous&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
-  <link rel="icon" type="image/svg+xml" href="logo.svg" />
-</head>
 
-<body>
-  <!-- Top-left Logo -->
-  <div class="logo">
-    <img src="logo.svg" alt="Quiply Logo" />
-    <span>Quiply</span>
-  </div>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Quiply</title>
+        <meta name="description" content="Random quotes over beautiful imagery — pick a category and vibe." />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet" href="style.css" />
+        <link rel="icon" type="image/svg+xml" href="logo.svg" />
+    </head>
 
-  <!-- Loading shimmer -->
-  <div class="shimmer" id="shimmer"></div>
+    <body>
+        <!-- Top-left Logo -->
+        <div class="logo">
+            <img src="logo.svg" alt="Quiply Logo" />
+            <span>QUIPLY</span>
+        </div>
 
-  <!-- Background image -->
-  <img class="bg-image" id="photo" alt="Random background" />
+        <!-- Loading shimmer -->
+        <div class="shimmer" id="shimmer"></div>
 
-  <!-- Readability overlay -->
-  <div class="overlay"></div>
+        <!-- Background image -->
+        <img class="bg-image" id="photo" alt="Random background" />
 
-  <!-- Centered quote -->
-  <div class="center-text">
-    <h1 id="quote"></h1>
-  </div>
+        <!-- Readability overlay -->
+        <div class="overlay"></div>
 
-  <!-- Top-right toolbar -->
-  <div class="toolbar">
-    <!-- Category picker -->
-    <div class="category-wrapper">
-      <button class="icon-btn category-btn" id="categoryBtn" aria-label="Choose category">
-        <!-- Feather: layers icon -->
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-          <polyline points="2 17 12 22 22 17"></polyline>
-          <polyline points="2 12 12 17 22 12"></polyline>
-        </svg>
-      </button>
-      <div class="dropdown" id="dropdown"></div>
-    </div>
+        <!-- Centered quote -->
+        <div class="center-text">
+            <h1 id="quote"></h1>
+        </div>
 
-    <!-- Refresh -->
-    <button class="icon-btn refresh-btn" id="refreshBtn" aria-label="New image & quote">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-           fill="none" stroke="currentColor" stroke-width="2"
-           stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="23 4 23 10 17 10"></polyline>
-        <polyline points="1 20 1 14 7 14"></polyline>
-        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
-        <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
-      </svg>
-    </button>
-  </div>
+        <!-- Top-right toolbar -->
+        <div class="toolbar">
+            <!-- Category picker -->
+            <div class="category-wrapper">
+                <button type="button" class="icon-btn category-btn" id="categoryBtn" aria-label="Choose category">
+                    <!-- Feather: layers icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                </button>
+                <div class="dropdown" id="dropdown"></div>
+            </div>
 
-  <script src="script.js"></script>
-</body>
+            <!-- Refresh -->
+            <button type="button" class="icon-btn refresh-btn" id="refreshBtn" aria-label="New image & quote">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+                    <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
+                </svg>
+            </button>
+        </div>
+
+        <script src="script.js"></script>
+    </body>
+
 </html>
