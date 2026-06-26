@@ -63,6 +63,10 @@ let shuffleQueues = {};   // Per-category shuffle queues (decks) keyed by filena
 let lastShown    = {};    // Last quote shown per queue key — prevents back-to-back repeats
 let currentImage = null;  // The currently-displayed Image object, reused by the download function
 
+// Preload the SVG logo so it's ready to draw on the download canvas without any async work
+const logoImage = new Image();
+logoImage.src = 'assets/logo.svg';
+
 /* ═══════════════════════════════════════════
    SHUFFLE UTILITIES
    ═══════════════════════════════════════════ */
@@ -463,13 +467,29 @@ downloadBtn.addEventListener('click', () => {
         ctx.shadowBlur = 0; // Reset before drawing branding (no shadow on small text)
     }
 
-    // 4. Branding
-    const brandSize = Math.max(Math.round(W * 0.012), 10);
+    // 4. Branding — logo icon + text, centered as a group, at a subtle small size
+    const brandSize = Math.max(Math.round(W * 0.009), 8);  // smaller than before (was 1.2%)
+    const brandText = 'QUIPLY · codebydusk.github.io/quiply';
     ctx.font         = `400 ${brandSize}px 'Martel Sans', sans-serif`;
-    ctx.fillStyle    = 'rgba(255, 255, 255, 0.4)';
-    ctx.textAlign    = 'center';
+    ctx.fillStyle    = 'rgba(255, 255, 255, 0.35)';
     ctx.textBaseline = 'bottom';
-    ctx.fillText('QUIPLY | https://codebydusk.github.io/quiply', W / 2, H - Math.round(H * 0.02));
+
+    const brandY    = H - Math.round(H * 0.02);
+    const gap       = Math.round(brandSize * 0.6);          // space between icon and text
+    const iconSize  = Math.round(brandSize * 1.6);          // icon slightly taller than text cap-height
+    const textW     = ctx.measureText(brandText).width;
+    const totalW    = iconSize + gap + textW;
+    const groupX    = (W - totalW) / 2;                     // left edge of the centered group
+
+    // Draw logo icon (SVG rendered into a small square)
+    if (logoImage.complete && logoImage.naturalWidth > 0) {
+        ctx.drawImage(logoImage, groupX, brandY - iconSize, iconSize, iconSize);
+    }
+
+    // Draw brand text to the right of the icon
+    ctx.textAlign = 'left';
+    ctx.fillText(brandText, groupX + iconSize + gap, brandY);
+    ctx.textAlign = 'center'; // restore default
 
     // 5. Download — filename uses local time in DDMMYYYYHHMMSS format
     const link = document.createElement('a');
