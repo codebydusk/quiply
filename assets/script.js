@@ -72,6 +72,15 @@ logoImage.src = 'assets/logo.svg';
    ═══════════════════════════════════════════ */
 
 /**
+ * Generates a cryptographically secure random float between 0 (inclusive) and 1 (exclusive).
+ * Acts as a secure drop-in replacement for Math.random().
+ * @returns {number}
+ */
+function cryptoRandom() {
+    return crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296; // 2^32
+}
+
+/**
  * Returns a new Fisher-Yates shuffled copy of the given array.
  * Does not mutate the original.
  * @param {Array} arr
@@ -80,7 +89,7 @@ logoImage.src = 'assets/logo.svg';
 function shuffle(arr) {
     const a = [...arr];
     for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(cryptoRandom() * (i + 1));
         [a[i], a[j]] = [a[j], a[i]];
     }
     return a;
@@ -104,7 +113,7 @@ function getNextQuote(lines, fileKey) {
         let deck = shuffle(lines);
         // Prevent the same quote appearing last-then-first across a reshuffle
         if (lastShown[fileKey] && deck.length > 1 && deck[0] === lastShown[fileKey]) {
-            const swapIdx = 1 + Math.floor(Math.random() * (deck.length - 1));
+            const swapIdx = 1 + Math.floor(cryptoRandom() * (deck.length - 1));
             [deck[0], deck[swapIdx]] = [deck[swapIdx], deck[0]];
         }
         shuffleQueues[fileKey] = deck;
@@ -303,7 +312,7 @@ function loadImage() {
         photo.classList.remove('loaded');
 
         const { w, h } = getDimensions();
-        const url = `https://picsum.photos/${w}/${h}?random=${Date.now()}`;
+        const url = `https://picsum.photos/${w}/${h}?random=${crypto.randomUUID()}`;
 
         try {
             // Single fetch → blob URL — guarantees the CSS bg and canvas use identical pixels
@@ -357,7 +366,7 @@ async function refresh() {
     if (targetFile === 'random') {
         // Pick a random real category (excludes headers and 'random' itself)
         const valid = CATEGORIES.filter(c => c.file && c.file !== 'random');
-        targetFile = valid[Math.floor(Math.random() * valid.length)].file;
+        targetFile = valid[Math.floor(cryptoRandom() * valid.length)].file;
     }
 
     // Show/hide the "no-as-a-service" footer credit for the NO category
