@@ -22,6 +22,7 @@ const refreshBtn = document.getElementById('refreshBtn');
 const copyBtn = document.getElementById('copyBtn');
 const categoryBtn = document.getElementById('categoryBtn');
 const dropdown = document.getElementById('dropdown');
+const noCredit = document.getElementById('noCredit');
 
 /* ── State ── */
 let currentCategory = CATEGORIES.find(c => c.file === 'random') || CATEGORIES[0];
@@ -176,6 +177,9 @@ async function refresh() {
     const valid = CATEGORIES.filter(c => c.file !== 'random');
     targetFile = valid[Math.floor(Math.random() * valid.length)].file;
   }
+  
+  noCredit.style.display = (targetFile === 'no.json') ? 'inline' : 'none';
+
   const lines = await getLines(targetFile);
   const line = lines[Math.floor(Math.random() * lines.length)];
   quoteEl.textContent = `"${line}"`;
