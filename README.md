@@ -1,7 +1,6 @@
-<div align="center">
-  <img src="assets/logo.svg" alt="Quiply Logo" width="120" height="120" />
-  <h1>Quiply</h1>
-</div>
+![Quiply](assets/logo.svg)
+
+# QUIPLY
 
 > *Wit, wisdom, and wonderfully questionable life advice — beautifully presented.*
 
