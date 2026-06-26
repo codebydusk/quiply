@@ -3,23 +3,23 @@
  * Order here = order in the dropdown.
  */
 const CATEGORIES = [
-  { file: 'bad_advice.json',       label: 'Bad Advice' },
-  { file: 'chaos.json',            label: 'Chaos' },
+  { file: 'bad_advice.json', label: 'Bad Advice' },
+  { file: 'chaos.json', label: 'Chaos' },
   { file: 'emotional_damage.json', label: 'Emotional Damage' },
-  { file: 'horoscope.json',        label: 'Horoscope' },
-  { file: 'insults.json',          label: 'Insults' },
-  { file: 'love.json',             label: 'Love' },
-  { file: 'no.json',               label: 'No.' },
-  { file: 'office_excuses.json',   label: 'Office Excuses' },
+  { file: 'horoscope.json', label: 'Horoscope' },
+  { file: 'insults.json', label: 'Insults' },
+  { file: 'love.json', label: 'Love' },
+  { file: 'no.json', label: 'No.' },
+  { file: 'office_excuses.json', label: 'Office Excuses' },
 ];
 
 /* ── DOM refs ── */
-const photo       = document.getElementById('photo');
-const shimmer     = document.getElementById('shimmer');
-const quoteEl     = document.getElementById('quote');
-const refreshBtn  = document.getElementById('refreshBtn');
+const photo = document.getElementById('photo');
+const shimmer = document.getElementById('shimmer');
+const quoteEl = document.getElementById('quote');
+const refreshBtn = document.getElementById('refreshBtn');
 const categoryBtn = document.getElementById('categoryBtn');
-const dropdown    = document.getElementById('dropdown');
+const dropdown = document.getElementById('dropdown');
 
 /* ── State ── */
 let currentCategory = CATEGORIES[0];
@@ -38,9 +38,12 @@ function buildDropdown() {
   dropdown.innerHTML = '';
   CATEGORIES.forEach((cat) => {
     const btn = document.createElement('button');
+    btn.setAttribute('role', 'option');
+    btn.setAttribute('aria-selected', cat.file === currentCategory.file ? 'true' : 'false');
     btn.textContent = cat.label;
     if (cat.file === currentCategory.file) btn.classList.add('active');
     btn.addEventListener('click', () => selectCategory(cat));
+    btn.addEventListener('keydown', (e) => handleDropdownKeydown(e, btn));
     dropdown.appendChild(btn);
   });
 }
@@ -57,11 +60,35 @@ function selectCategory(cat) {
 function toggleDropdown() {
   const isOpen = dropdown.classList.toggle('open');
   categoryBtn.classList.toggle('open', isOpen);
+  categoryBtn.setAttribute('aria-expanded', isOpen);
+  if (isOpen) {
+    const activeBtn = dropdown.querySelector('.active');
+    if (activeBtn) activeBtn.focus();
+  } else {
+    categoryBtn.focus();
+  }
 }
 
 function closeDropdown() {
   dropdown.classList.remove('open');
   categoryBtn.classList.remove('open');
+  categoryBtn.setAttribute('aria-expanded', 'false');
+}
+
+function handleDropdownKeydown(e, currentBtn) {
+  if (e.key === 'Escape') {
+    closeDropdown();
+    categoryBtn.focus();
+    e.preventDefault();
+  } else if (e.key === 'ArrowDown') {
+    const next = currentBtn.nextElementSibling;
+    if (next) next.focus();
+    e.preventDefault();
+  } else if (e.key === 'ArrowUp') {
+    const prev = currentBtn.previousElementSibling;
+    if (prev) prev.focus();
+    e.preventDefault();
+  }
 }
 
 // Close dropdown on outside click
@@ -72,6 +99,19 @@ document.addEventListener('click', (e) => {
 categoryBtn.addEventListener('click', (e) => {
   e.stopPropagation();
   toggleDropdown();
+});
+
+categoryBtn.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (!dropdown.classList.contains('open')) {
+      toggleDropdown();
+    }
+  } else if (e.key === 'Escape' && dropdown.classList.contains('open')) {
+    closeDropdown();
+    categoryBtn.focus();
+    e.preventDefault();
+  }
 });
 
 /* ── Load lines from JSON ── */
@@ -91,7 +131,7 @@ async function getLines(fileName) {
 function getDimensions() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   return {
-    w: Math.min(Math.round(window.innerWidth  * dpr), 4000),
+    w: Math.min(Math.round(window.innerWidth * dpr), 4000),
     h: Math.min(Math.round(window.innerHeight * dpr), 4000),
   };
 }
@@ -106,7 +146,7 @@ function loadImage() {
 
     const tmp = new Image();
     tmp.onload = () => {
-      photo.src = url;
+      photo.style.setProperty('--bg-url', `url(${url})`);
       requestAnimationFrame(() => {
         photo.classList.add('loaded');
         shimmer.classList.add('hidden');

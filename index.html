@@ -4,7 +4,9 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Quiply</title>
+        <title>
+            Quiply - A curated library of original quotes, wit, wisdom, and wonderfully questionable life advice.
+        </title>
         <meta name="description" content="Random quotes over beautiful imagery — pick a category and vibe." />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,30 +19,31 @@
 
     <body>
         <!-- Top-left Logo -->
-        <div class="logo">
+        <header class="logo">
             <img src="logo.svg" alt="Quiply Logo" />
             <span>QUIPLY</span>
-        </div>
+        </header>
 
         <!-- Loading shimmer -->
         <div class="shimmer" id="shimmer"></div>
 
         <!-- Background image -->
-        <img class="bg-image" id="photo" alt="Random background" />
+        <div class="bg-image" id="photo" role="img" aria-label="Random background"></div>
 
         <!-- Readability overlay -->
         <div class="overlay"></div>
 
         <!-- Centered quote -->
-        <div class="center-text">
+        <main class="center-text" aria-live="polite" aria-atomic="true">
             <h1 id="quote"></h1>
-        </div>
+        </main>
 
         <!-- Top-right toolbar -->
-        <div class="toolbar">
+        <div class="toolbar" role="group" aria-label="Toolbar">
             <!-- Category picker -->
             <div class="category-wrapper">
-                <button type="button" class="icon-btn category-btn" id="categoryBtn" aria-label="Choose category">
+                <button type="button" class="icon-btn category-btn" id="categoryBtn" aria-label="Choose category"
+                    aria-haspopup="listbox" aria-expanded="false" aria-controls="dropdown">
                     <!-- Feather: layers icon -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -49,7 +52,7 @@
                         <polyline points="2 12 12 17 22 12"></polyline>
                     </svg>
                 </button>
-                <div class="dropdown" id="dropdown"></div>
+                <div class="dropdown" id="dropdown" role="listbox" aria-label="Categories"></div>
             </div>
 
             <!-- Refresh -->
@@ -63,6 +66,15 @@
                 </svg>
             </button>
         </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            Backgrounds by
+            <a href="https://picsum.photos/" target="_blank" rel="noopener noreferrer"> Lorem Picsum </a>
+            |
+            Source on
+            <a href="https://github.com/codebydusk/quiply" target="_blank" rel="noopener noreferrer"> GitHub </a>
+        </footer>
 
         <script src="script.js"></script>
     </body>
