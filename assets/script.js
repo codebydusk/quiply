@@ -488,6 +488,22 @@ window.addEventListener('resize', () => {
     resizeTimer = setTimeout(loadImage, 500);
 });
 
+/**
+ * Keyboard shortcuts:
+ *   Space or R → refresh (new quote + image)
+ * Only active when the dropdown is closed and no input/textarea is focused.
+ */
+document.addEventListener('keydown', (e) => {
+    // Skip if the user is typing in an input or the dropdown is open
+    if (dropdown.classList.contains('open')) return;
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+
+    if (e.key === ' ' || e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        refresh();
+    }
+});
+
 /* ═══════════════════════════════════════════
    INIT
    ═══════════════════════════════════════════ */

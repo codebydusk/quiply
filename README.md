@@ -8,14 +8,26 @@ Quiply is a minimalist quote app that pairs curated, hand-picked quotes with stu
 
 ---
 
+## ✨ Features
+
+- 🖼️ **Immersive backgrounds** — hi-res photos from [Lorem Picsum](https://picsum.photos/), sized to your screen and pixel density
+- 🎲 **Categorized & shuffled** — every quote shown exactly once before reshuffling, with no back-to-back repeats
+- 📋 **Copy** — one tap to grab the quote text to your clipboard
+- 📥 **Download** — saves a ready-to-share PNG with the quote, the photo, and a subtle Quiply watermark
+- ⌨️ **Keyboard shortcuts** — press **Space** or **R** to refresh instantly
+- 💾 **Remembers your category** — your last selection is saved locally
+- 🌙 **Dark, glassmorphic UI** — clean, unobtrusive, and fully responsive
+
+---
+
 ## For Users
 
 **How to use it:**
 
 1. Open the app.
 2. Pick a category from the top-right menu (or let **Random** surprise you).
-3. Hit the **↻ refresh** button for a new quote + background.
-4. Like what you see? Hit **copy** to grab the text, or **↓ download** to save it as a shareable PNG — complete with the quote, the photo, and a subtle Quiply watermark.
+3. Hit the **↻ refresh** button (or press **Space** / **R**) for a new quote + background.
+4. Like what you see? Hit **copy** to grab the text, or **↓ download** to save it as a shareable PNG.
 
 **Categories:**
 
@@ -53,7 +65,7 @@ quiply/
 ├── sitemap.xml
 └── assets/
     ├── style.css           # All styles
-    ├── script.js           # All logic
+    ├── script.js           # All logic (fully commented)
     ├── logo.svg            # App icon
     └── data/               # Quote databases (JSON arrays of strings)
         ├── bad_advice.json
@@ -136,4 +148,4 @@ Quiply stands on the shoulders of some great open-source work:
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+This project is licensed under the **GNU General Public License v3.0** — see the [LICENSE](LICENSE) file for details.
