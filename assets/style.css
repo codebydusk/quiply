@@ -312,9 +312,34 @@ body {
     text-align: left;
     cursor: pointer;
     display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    transition: background .15s ease, color .15s ease;
+}
+
+.dropdown .action-btn {
+    flex-direction: row;
     align-items: center;
     gap: 10px;
-    transition: background .15s ease, color .15s ease;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.dropdown .action-btn svg {
+    display: block;
+    flex-shrink: 0;
+    transform: translateY(-3px);
+    /* Optical baseline alignment */
+}
+
+.dropdown .action-btn:hover {
+    color: #ff4757;
+}
+
+.dropdown-progress {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.4);
+    pointer-events: none;
 }
 
 .dropdown button:hover {
@@ -371,6 +396,7 @@ body {
    MOBILE LAYOUT
    ═══════════════════════════════════════════ */
 @media (max-width: 600px) {
+
     /* Move toolbar from top-right to bottom-right so it doesn't overlap the logo */
     .toolbar {
         top: auto;

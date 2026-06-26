@@ -16,35 +16,38 @@
      { group }       — a visual section header (non-interactive)
    ═══════════════════════════════════════════ */
 const CATEGORIES = [
-    { file: 'random', label: 'Random' },
+    { file: 'random', label: 'Today\'s Quiply' },
 
-    { group: 'Daily' },
-    { file: 'no.json',               label: 'NO' },
-    { file: 'chaos.json',            label: 'Chaos' },
-    { file: 'bad_advice.json',       label: 'Questionable Decisions' },
+    { group: 'Core' },
+    { file: 'no.json', label: 'NO' },
+    { file: 'chaos.json', label: 'Chaos' },
+    { file: 'bad_advice.json', label: 'Questionable Decisions' },
     { file: 'emotional_damage.json', label: 'Character Development' },
 
-    { group: 'Delulu' },
-    { file: 'love.json',             label: 'Hopeless Romantic' },
+    { group: 'Relationships' },
+    { file: 'love.json', label: 'Hopeless Romantic' },
 
-    { group: 'Everyday Chaos' },
-    { file: 'office_excuses.json',   label: 'Corporate Survival' },
-    { file: 'insults.json',          label: 'Friendly Fire' },
-    { file: 'horoscope.json',        label: "Today's Lies" },
+    { group: 'Life' },
+    { file: 'office_excuses.json', label: 'Corporate Survival' },
+    { file: 'insults.json', label: 'Friendly Fire' },
+    { file: 'horoscope.json', label: "Today's Lies" },
+
+    { group: 'Settings' },
+    { action: 'flush', label: 'Flush all' }
 ];
 
 /* ═══════════════════════════════════════════
    DOM REFERENCES
    ═══════════════════════════════════════════ */
-const photo       = document.getElementById('photo');       // Full-page background image div
-const shimmer     = document.getElementById('shimmer');     // Loading overlay
-const quoteEl     = document.getElementById('quote');       // Quote <h1>
-const refreshBtn  = document.getElementById('refreshBtn');  // Refresh button
-const copyBtn     = document.getElementById('copyBtn');     // Copy-to-clipboard button
+const photo = document.getElementById('photo');       // Full-page background image div
+const shimmer = document.getElementById('shimmer');     // Loading overlay
+const quoteEl = document.getElementById('quote');       // Quote <h1>
+const refreshBtn = document.getElementById('refreshBtn');  // Refresh button
+const copyBtn = document.getElementById('copyBtn');     // Copy-to-clipboard button
 const downloadBtn = document.getElementById('downloadBtn'); // Download PNG button
 const categoryBtn = document.getElementById('categoryBtn'); // Dropdown trigger button
-const dropdown    = document.getElementById('dropdown');    // Dropdown listbox
-const noCredit    = document.getElementById('noCredit');    // "no-as-a-service" footer credit
+const dropdown = document.getElementById('dropdown');    // Dropdown listbox
+const noCredit = document.getElementById('noCredit');    // "no-as-a-service" footer credit
 
 /* ═══════════════════════════════════════════
    STATE
@@ -58,9 +61,7 @@ if (savedCategoryFile) {
     if (found) currentCategory = found;
 }
 
-let linesCache   = {};    // Cache of fetched JSON arrays keyed by filename
-let shuffleQueues = {};   // Per-category shuffle queues (decks) keyed by filename
-let lastShown    = {};    // Last quote shown per queue key — prevents back-to-back repeats
+let linesCache = {};    // Cache of fetched JSON arrays keyed by filename
 let currentImage = null;  // The currently-displayed Image object, reused by the download function
 
 // Preload the SVG logo so it's ready to draw on the download canvas without any async work
@@ -68,59 +69,147 @@ const logoImage = new Image();
 logoImage.src = 'assets/logo.svg';
 
 /* ═══════════════════════════════════════════
-   SHUFFLE UTILITIES
+   SHUFFLE UTILITIES & PERSISTENCE
    ═══════════════════════════════════════════ */
 
 /**
- * Generates a cryptographically secure random float between 0 (inclusive) and 1 (exclusive).
- * Acts as a secure drop-in replacement for Math.random().
- * @returns {number}
+ * Global Random Engine
+ * Provides cryptographically secure randomization when available (HTTPS/localhost).
+ * Gracefully falls back to Math.random() in insecure environments (e.g. LAN testing on mobile).
  */
-function cryptoRandom() {
-    return crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296; // 2^32
-}
+const SecureRandom = {
+    // Check if the browser environment provides the Web Crypto API
+    hasCrypto: typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function',
+    hasUUID: typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function',
 
-/**
- * Returns a new Fisher-Yates shuffled copy of the given array.
- * Does not mutate the original.
- * @param {Array} arr
- * @returns {Array}
- */
-function shuffle(arr) {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(cryptoRandom() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-}
-
-/**
- * Pulls the next quote from the shuffle queue for a given key.
- *
- * Each key (category filename, or 'random') maintains its own independent
- * shuffled deck. When the deck runs out, it is reshuffled. To guarantee
- * no back-to-back repeat at the reshuffle boundary, if the first card
- * of the new deck matches the last-shown quote, it is swapped to a
- * random later position.
- *
- * @param {string[]} lines   - Full array of quotes for the category
- * @param {string}   fileKey - Queue identifier (filename or 'random')
- * @returns {string}
- */
-function getNextQuote(lines, fileKey) {
-    if (!shuffleQueues[fileKey] || shuffleQueues[fileKey].length === 0) {
-        let deck = shuffle(lines);
-        // Prevent the same quote appearing last-then-first across a reshuffle
-        if (lastShown[fileKey] && deck.length > 1 && deck[0] === lastShown[fileKey]) {
-            const swapIdx = 1 + Math.floor(cryptoRandom() * (deck.length - 1));
-            [deck[0], deck[swapIdx]] = [deck[swapIdx], deck[0]];
+    /**
+     * Generates a random float between 0 (inclusive) and 1 (exclusive).
+     * @returns {number}
+     */
+    float() {
+        if (this.hasCrypto) {
+            return crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296; // 2^32
         }
-        shuffleQueues[fileKey] = deck;
+        return Math.random();
+    },
+
+    /**
+     * Generates a random UUID string (or a pseudo-UUID fallback).
+     * @returns {string}
+     */
+    uuid() {
+        if (this.hasUUID) {
+            return crypto.randomUUID();
+        }
+        // Fallback: highly unique string for cache-busting
+        return Math.random().toString(36).substring(2) + Date.now().toString(36);
     }
-    const quote = shuffleQueues[fileKey].shift();
-    lastShown[fileKey] = quote;
-    return quote;
+};
+
+const SHUFFLE_STORAGE_KEY = 'quiply_shuffle_state';
+const SHUFFLE_VERSION = 1;
+
+const ShuffleState = {
+    load() {
+        try {
+            const data = localStorage.getItem(SHUFFLE_STORAGE_KEY);
+            if (!data) return null;
+            const parsed = JSON.parse(data);
+            if (parsed.version !== SHUFFLE_VERSION) return null;
+            return parsed;
+        } catch {
+            return null;
+        }
+    },
+    save(state) {
+        state.version = SHUFFLE_VERSION;
+        localStorage.setItem(SHUFFLE_STORAGE_KEY, JSON.stringify(state));
+    }
+};
+
+/**
+ * A generic class that creates and tracks a shuffled deck of indices for any category.
+ * It persists state, validates array lengths, prevents repeats, and serves quotes sequentially.
+ */
+class ShuffleDeck {
+    constructor(id) {
+        this.id = id;
+        this.indices = [];
+        this.index = 0;
+    }
+
+    _generateAndShuffle(length) {
+        this.indices = Array.from({ length }, (_, i) => i);
+        // In-place Fisher-Yates
+        for (let i = length - 1; i > 0; i--) {
+            const j = Math.floor(SecureRandom.float() * (i + 1));
+            [this.indices[i], this.indices[j]] = [this.indices[j], this.indices[i]];
+        }
+        this.index = 0;
+    }
+
+    _loadState(length) {
+        const globalState = ShuffleState.load() || { version: SHUFFLE_VERSION, decks: {} };
+        const saved = globalState.decks[this.id];
+
+        if (!saved) return false;
+        if (!Array.isArray(saved.indices)) return false;
+        if (saved.indices.length !== length) return false;
+        if (saved.index < 0 || saved.index > length) return false;
+
+        // Strict validation for duplicates or out-of-bounds indices
+        const unique = new Set(saved.indices);
+        if (unique.size !== length) return false;
+        for (const idx of saved.indices) {
+            if (typeof idx !== 'number' || idx < 0 || idx >= length) return false;
+        }
+
+        this.indices = saved.indices;
+        this.index = saved.index;
+        return true;
+    }
+
+    _saveState() {
+        const globalState = ShuffleState.load() || { version: SHUFFLE_VERSION, decks: {} };
+        globalState.decks[this.id] = {
+            indices: this.indices,
+            index: this.index
+        };
+        ShuffleState.save(globalState);
+    }
+
+    next(quotesArray) {
+        const len = quotesArray.length;
+        if (len === 0) return null;
+
+        const categoryName = this.id === 'random' ? 'Random' : (CATEGORIES.find(c => c.file === this.id)?.label || this.id);
+
+        if (this.indices.length === 0) {
+            const restored = this._loadState(len);
+            if (!restored) {
+                this._generateAndShuffle(len);
+            }
+        }
+
+        // Exhaustion / Reshuffle checks
+        if (this.index >= len) {
+            this._generateAndShuffle(len);
+        }
+
+        const quote = quotesArray[this.indices[this.index]];
+        this.index++;
+        this._saveState();
+
+        return quote;
+    }
+}
+
+const activeDecks = {};
+function getDeck(id) {
+    if (!activeDecks[id]) {
+        activeDecks[id] = new ShuffleDeck(id);
+    }
+    return activeDecks[id];
 }
 
 /* ═══════════════════════════════════════════
@@ -148,9 +237,43 @@ function buildDropdown() {
 
         const btn = document.createElement('button');
         btn.setAttribute('role', 'option');
+
+        if (cat.action) {
+            btn.className = 'action-btn';
+
+            // Feather Trash-2 icon
+            const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.7;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
+
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'dropdown-label';
+            labelSpan.textContent = cat.label;
+
+            btn.innerHTML = iconSvg;
+            btn.appendChild(labelSpan);
+
+            btn.addEventListener('click', () => {
+                labelSpan.textContent = 'Flushed!';
+                setTimeout(() => flushAll(), 400);
+            });
+            dropdown.appendChild(btn);
+            return;
+        }
+
         btn.setAttribute('aria-selected', cat.file === currentCategory.file ? 'true' : 'false');
-        btn.textContent = cat.label;
-        if (cat.file === currentCategory.file) btn.classList.add('active');
+
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 'dropdown-label';
+        labelSpan.textContent = cat.label;
+        btn.appendChild(labelSpan);
+
+        if (cat.file === currentCategory.file) {
+            btn.classList.add('active');
+            const progressSpan = document.createElement('span');
+            progressSpan.className = 'dropdown-progress';
+            progressSpan.id = 'dropdownProgress';
+            btn.appendChild(progressSpan);
+        }
+
         btn.addEventListener('click', () => selectCategory(cat));
         btn.addEventListener('keydown', (e) => handleDropdownKeydown(e, btn));
         dropdown.appendChild(btn);
@@ -166,9 +289,24 @@ function buildDropdown() {
 function selectCategory(cat) {
     currentCategory = cat;
     localStorage.setItem('quiply_category', cat.file);
-    closeDropdown();
-    buildDropdown();
+    dropdown.classList.remove('open');
+    categoryBtn.classList.remove('open');
+    categoryBtn.setAttribute('aria-expanded', 'false');
+    buildDropdown(); // update active class
     refresh();
+}
+
+/**
+ * Erases all persisted shuffle data from localStorage,
+ * resets the active category to 'random', and refreshes.
+ */
+function flushAll() {
+    localStorage.removeItem(SHUFFLE_STORAGE_KEY);
+    for (const key in activeDecks) {
+        delete activeDecks[key];
+    }
+    const randomCat = CATEGORIES.find(c => c.file === 'random');
+    selectCategory(randomCat);
 }
 
 /**
@@ -277,6 +415,75 @@ async function getLines(fileName) {
 }
 
 /* ═══════════════════════════════════════════
+   SMART RANDOM ENGINE
+   ═══════════════════════════════════════════ */
+
+/**
+ * A dedicated component that merges all available quote packs into a single
+ * global deck, shuffles them evenly, and guarantees every quote is shown 
+ * exactly once before any repeats occur.
+ */
+class GlobalQuoteManager {
+    constructor() {
+        this.globalQuotes = [];
+        this.isInitialized = false;
+    }
+
+    async init() {
+        // Find all real data files (exclude headers and 'random' itself)
+        const validFiles = CATEGORIES
+            .filter(c => c.file && c.file !== 'random')
+            .map(c => c.file);
+
+        // Fetch all of them in parallel utilizing cache
+        const responses = await Promise.all(validFiles.map(file => getLines(file)));
+
+        let pool = [];
+
+        // 1. Pick up to 15 random quotes from each category
+        validFiles.forEach((file, i) => {
+            const lines = responses[i];
+            const categoryQuotes = lines.map(text => ({ text, file }));
+            
+            // Cryptographically shuffle this category's quotes
+            for (let j = categoryQuotes.length - 1; j > 0; j--) {
+                const k = Math.floor(SecureRandom.float() * (j + 1));
+                [categoryQuotes[j], categoryQuotes[k]] = [categoryQuotes[k], categoryQuotes[j]];
+            }
+            
+            // Take the first 15 (or all, if less than 15)
+            pool = pool.concat(categoryQuotes.slice(0, 15));
+        });
+
+        // 2. Cryptographically shuffle the pooled array
+        for (let j = pool.length - 1; j > 0; j--) {
+            const k = Math.floor(SecureRandom.float() * (j + 1));
+            [pool[j], pool[k]] = [pool[k], pool[j]];
+        }
+
+        // 3. Take exactly 100 quotes to form the global deck
+        this.globalQuotes = pool.slice(0, 100);
+
+        this.isInitialized = true;
+    }
+
+    async next() {
+        const deck = getDeck('random', true);
+        
+        // If the deck is fully exhausted, force a fresh regeneration of the 100-quote pool
+        if (this.isInitialized && deck.indices.length > 0 && deck.index >= deck.indices.length) {
+            this.isInitialized = false;
+        }
+
+        if (!this.isInitialized) await this.init();
+        
+        return deck.next(this.globalQuotes);
+    }
+}
+
+const globalQuoteManager = new GlobalQuoteManager();
+
+/* ═══════════════════════════════════════════
    IMAGE LOADING
    ═══════════════════════════════════════════ */
 
@@ -288,7 +495,7 @@ async function getLines(fileName) {
 function getDimensions() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     return {
-        w: Math.min(Math.round(window.innerWidth  * dpr), 4000),
+        w: Math.min(Math.round(window.innerWidth * dpr), 4000),
         h: Math.min(Math.round(window.innerHeight * dpr), 4000),
     };
 }
@@ -312,7 +519,7 @@ function loadImage() {
         photo.classList.remove('loaded');
 
         const { w, h } = getDimensions();
-        const url = `https://picsum.photos/${w}/${h}?random=${crypto.randomUUID()}`;
+        const url = `https://picsum.photos/${w}/${h}?random=${SecureRandom.uuid()}`;
 
         try {
             // Single fetch → blob URL — guarantees the CSS bg and canvas use identical pixels
@@ -356,30 +563,49 @@ function loadImage() {
  * time but uses its own 'random' queue key so it doesn't interfere
  * with any specific category's shuffle state.
  */
+let isRecovering = false;
 async function refresh() {
-    quoteEl.classList.remove('visible');
+    try {
+        quoteEl.classList.remove('visible');
 
-    await loadImage();
+        await loadImage();
 
-    // Resolve the actual file to load quotes from
-    let targetFile = currentCategory.file;
-    if (targetFile === 'random') {
-        // Pick a random real category (excludes headers and 'random' itself)
-        const valid = CATEGORIES.filter(c => c.file && c.file !== 'random');
-        targetFile = valid[Math.floor(cryptoRandom() * valid.length)].file;
+        // Resolve the actual file to load quotes from
+        let targetFile = currentCategory.file;
+        let line = '';
+
+        if (targetFile === 'random') {
+            // Smart Random Mode: Pull from the globally shuffled deck via Manager
+            const quoteObj = await globalQuoteManager.next();
+            line = quoteObj.text;
+            targetFile = quoteObj.file; // Update targetFile to trigger UI side-effects (like noCredit)
+
+            const randDeck = getDeck('random');
+            const dp = document.getElementById('dropdownProgress');
+            if (dp) dp.textContent = `${randDeck.index} discovered, ${globalQuoteManager.globalQuotes.length} remaining!`;
+        } else {
+            // Specific Category Mode: Pull from the category's persistent ShuffleDeck
+            const lines = await getLines(targetFile);
+            const deck = getDeck(targetFile);
+            line = deck.next(lines);
+
+            const dp = document.getElementById('dropdownProgress');
+            if (dp) dp.textContent = `${deck.index} discovered, ${lines.length} remaining!`;
+        }
+
+        // Show/hide the "no-as-a-service" footer credit for the NO category
+        noCredit.classList.toggle('visible', targetFile === 'no.json');
+
+        quoteEl.textContent = `"${line}"`;
+        requestAnimationFrame(() => quoteEl.classList.add('visible')); // Trigger CSS fade-in
+        
+        isRecovering = false; // Reset recovery state on success
+    } catch (e) {
+        if (!isRecovering) {
+            isRecovering = true;
+            flushAll(); // Clear corrupted state and retry gracefully
+        }
     }
-
-    // Show/hide the "no-as-a-service" footer credit for the NO category
-    noCredit.classList.toggle('visible', targetFile === 'no.json');
-
-    const lines = await getLines(targetFile);
-
-    // Random mode uses a shared 'random' queue; specific categories use their own
-    const queueKey = currentCategory.file === 'random' ? 'random' : targetFile;
-    const line = getNextQuote(lines, queueKey);
-
-    quoteEl.textContent = `"${line}"`;
-    requestAnimationFrame(() => quoteEl.classList.add('visible')); // Trigger CSS fade-in
 }
 
 /* ═══════════════════════════════════════════
@@ -406,7 +632,7 @@ copyBtn.addEventListener('click', async () => {
         copyBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
         setTimeout(() => { copyBtn.innerHTML = originalHTML; }, 1500);
     } catch (err) {
-        console.error('Failed to copy text:', err);
+        // Silently fail if copy is denied
     }
 });
 
@@ -429,7 +655,7 @@ downloadBtn.addEventListener('click', async () => {
     const canvas = document.createElement('canvas');
     const W = currentImage.naturalWidth;
     const H = currentImage.naturalHeight;
-    canvas.width  = W;
+    canvas.width = W;
     canvas.height = H;
     const ctx = canvas.getContext('2d');
 
@@ -441,21 +667,21 @@ downloadBtn.addEventListener('click', async () => {
     ctx.fillRect(0, 0, W, H);
 
     // Adjust multipliers for portrait (mobile) vs landscape (desktop)
-    const isPortrait      = W < H;
+    const isPortrait = W < H;
     const quoteMultiplier = isPortrait ? 0.055 : 0.035;
-    const maxWidthFactor  = isPortrait ? 0.85 : 0.70;
+    const maxWidthFactor = isPortrait ? 0.85 : 0.70;
     const brandMultiplier = isPortrait ? 0.016 : 0.009;
 
     // 3. Quote text
     const quoteText = quoteEl.textContent;
     if (quoteText) {
         const fontSize = Math.max(Math.round(W * quoteMultiplier), 28);
-        ctx.font          = `400 ${fontSize}px 'Cormorant Garamond', serif`;
-        ctx.fillStyle     = '#ffffff';
-        ctx.textAlign     = 'center';
-        ctx.textBaseline  = 'middle';
-        ctx.shadowColor   = 'rgba(0, 0, 0, 0.5)';
-        ctx.shadowBlur    = 30;
+        ctx.font = `400 ${fontSize}px 'Cormorant Garamond', serif`;
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 30;
 
         // Word-wrap: greedily fill lines up to max width
         const maxWidth = W * maxWidthFactor;
@@ -474,9 +700,9 @@ downloadBtn.addEventListener('click', async () => {
         if (currentLine) lines.push(currentLine);
 
         // Vertically center the wrapped text block
-        const lineHeight  = fontSize * 1.4;
+        const lineHeight = fontSize * 1.4;
         const totalHeight = lines.length * lineHeight;
-        const startY      = (H - totalHeight) / 2 + lineHeight / 2;
+        const startY = (H - totalHeight) / 2 + lineHeight / 2;
         lines.forEach((line, i) => ctx.fillText(line, W / 2, startY + i * lineHeight));
 
         ctx.shadowBlur = 0; // Reset before drawing branding (no shadow on small text)
@@ -485,16 +711,16 @@ downloadBtn.addEventListener('click', async () => {
     // 4. Branding — logo icon + text, centered as a group, at a subtle small size
     const brandSize = Math.max(Math.round(W * brandMultiplier), 12);
     const brandText = 'QUIPLY · codebydusk.github.io/quiply';
-    ctx.font         = `400 ${brandSize}px 'Martel Sans', sans-serif`;
-    ctx.fillStyle    = 'rgba(255, 255, 255, 0.35)';
+    ctx.font = `400 ${brandSize}px 'Martel Sans', sans-serif`;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
     ctx.textBaseline = 'bottom';
 
-    const brandY    = H - Math.round(H * 0.02);
-    const gap       = Math.round(brandSize * 0.6);          // space between icon and text
-    const iconSize  = Math.round(brandSize * 1.6);          // icon slightly taller than text cap-height
-    const textW     = ctx.measureText(brandText).width;
-    const totalW    = iconSize + gap + textW;
-    const groupX    = (W - totalW) / 2;                     // left edge of the centered group
+    const brandY = H - Math.round(H * 0.02);
+    const gap = Math.round(brandSize * 0.6);          // space between icon and text
+    const iconSize = Math.round(brandSize * 1.6);          // icon slightly taller than text cap-height
+    const textW = ctx.measureText(brandText).width;
+    const totalW = iconSize + gap + textW;
+    const groupX = (W - totalW) / 2;                     // left edge of the centered group
 
     // Draw logo icon (SVG rendered into a small square)
     if (logoImage.complete && logoImage.naturalWidth > 0) {
@@ -507,16 +733,16 @@ downloadBtn.addEventListener('click', async () => {
     ctx.textAlign = 'center'; // restore default
 
     // 5. Download / Share — filename uses local time in DDMMYYYYHHMMSS format
-    const d    = new Date();
-    const pad  = n => String(n).padStart(2, '0');
-    const ts   = `${pad(d.getDate())}${pad(d.getMonth() + 1)}${d.getFullYear()}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const ts = `${pad(d.getDate())}${pad(d.getMonth() + 1)}${d.getFullYear()}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
     const filename = `quiply-${ts}.png`;
-    const dataUrl  = canvas.toDataURL('image/png');
+    const dataUrl = canvas.toDataURL('image/png');
 
     const fallbackDownload = () => {
         const link = document.createElement('a');
         link.download = filename;
-        link.href     = dataUrl;
+        link.href = dataUrl;
         link.click();
     };
 
@@ -531,7 +757,7 @@ downloadBtn.addEventListener('click', async () => {
             const u8arr = new Uint8Array(n);
             while (n--) u8arr[n] = bstr.charCodeAt(n);
             const blob = new Blob([u8arr], { type: mime });
-            
+
             const file = new File([blob], filename, { type: 'image/png' });
 
             if (navigator.canShare({ files: [file] })) {
@@ -545,7 +771,6 @@ downloadBtn.addEventListener('click', async () => {
             }
         } catch (err) {
             if (err.name !== 'AbortError') {
-                console.error('Share failed:', err);
                 fallbackDownload();
             }
         }

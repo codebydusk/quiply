@@ -13,7 +13,7 @@ Quiply is a minimalist quote app that pairs curated, hand-picked quotes with stu
 ## ✨ Features
 
 - 🖼️ **Immersive backgrounds** — hi-res photos from [Lorem Picsum](https://picsum.photos/), sized to your screen and pixel density
-- 🎲 **Categorized & shuffled** — every quote shown exactly once before reshuffling, with no back-to-back repeats
+- 🧠 **Persistent Cryptographic Shuffle** — Every category uses a unified, cryptographically secure shuffle deck. Your progress is saved locally, meaning you will *never* see repeats across sessions until you completely exhaust a category. The global "Random" mode merges all quotes into a massive master deck that automatically triggers a fresh shuffle every 24 hours.
 - 📋 **Copy** — one tap to grab the quote text to your clipboard
 - 📥 **Download / Share** — on desktop, saves a ready-to-share PNG. On mobile, instantly opens the native share sheet with the image.
 - ⌨️ **Keyboard shortcuts** — press **Space** or **R** to refresh instantly
@@ -27,19 +27,22 @@ Quiply is a minimalist quote app that pairs curated, hand-picked quotes with stu
 **How to use it:**
 
 1. Open the app.
-2. Pick a category from the top-right menu (or let **Random** surprise you).
+2. Pick a category from the top-right menu (or let **Today's Quiply** surprise you).
 3. Hit the **↻ refresh** button (or press **Space** / **R**) for a new quote + background.
 4. Like what you see? Hit **copy** to grab the text, or **↓ download / share** to save it as a PNG (or share it directly on mobile).
+
+*Note: You can track your progress through any deck by opening the category menu. The currently active category will display exactly how many quotes you've discovered and how many remain before it reshuffles!*
 
 **Categories:**
 
 | Group | Categories |
 |---|---|
-| Daily | NO · Chaos · Questionable Decisions · Character Development |
-| Delulu | Hopeless Romantic |
-| Everyday Chaos | Corporate Survival · Friendly Fire · Today's Lies |
+| Core | NO · Chaos · Questionable Decisions · Character Development |
+| Relationships | Hopeless Romantic |
+| Life | Corporate Survival · Friendly Fire · Today's Lies |
+| Settings | Flush all (Resets all saved progress and clears local storage) |
 
-Your last selected category is automatically remembered for next time.
+Your last selected category and exact progress through the deck is automatically remembered for next time.
 
 ---
 
@@ -97,11 +100,72 @@ python -m http.server 8080
 
 Then open `http://localhost:8080`.
 
-### Key Architecture Notes
+### Core Architecture
 
-- **Blob URL image loading** — `picsum.photos` URLs redirect on every request. To prevent the background image and the downloaded PNG from being two different photos, the image is fetched once, converted to a `blob:` URL, and reused everywhere.
-- **Shuffle queue system** — each category maintains its own Fisher-Yates shuffled deck. Quotes are dealt one at a time until exhausted, then reshuffled. A boundary check prevents the same quote appearing back-to-back across reshuffles.
-- **Canvas download** — the download button renders directly to a `<canvas>` using the already-decoded `Image` object. No re-fetch, no DOM capture library — instant.
+Quiply is built around a robust, persistent state machine designed to make the experience feel exactly like drawing physical cards from a well-shuffled deck, guaranteeing no premature repeats and an equal distribution of quotes regardless of category size.
+
+#### 1. Cryptographic Shuffling Engine
+
+The random number generation is strictly decoupled from the weak, predictable `Math.random()`. A global `SecureRandom` block dynamically probes the browser environment and leverages the rigorous **Web Crypto API** if available (HTTPS/Localhost), gracefully downgrading to standard math randomness to prevent crashes during local insecure network testing.
+
+```mermaid
+graph TD
+    A[SecureRandom Engine] --> B{Web Crypto API Available?}
+    B -- Yes (HTTPS/Localhost) --> C[crypto.getRandomValues()]
+    B -- No (HTTP LAN) --> D[Math.random()]
+    C --> E[In-Place Fisher-Yates Shuffle]
+    D --> E
+```
+
+#### 2. Persistent Decks (`ShuffleDeck`)
+
+Instead of just randomly picking string elements from a JSON array, Quiply generates a lightweight array of integers mapping to the exact length of the category `[0, 1, 2 ... N]`. 
+
+This integer array is shuffled, and items are dealt sequentially. A pointer (`index`) tracks exactly where the user left off. This extremely lightweight state object is committed to `localStorage` after every draw.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App
+    participant Deck
+    participant Storage
+
+    User->>App: Triggers Refresh
+    App->>Deck: next()
+    Deck->>Deck: Check if deck is exhausted
+    opt Exhausted
+        Deck->>Deck: Generate new integer array
+        Deck->>Deck: Cryptographic Fisher-Yates Shuffle
+    end
+    Deck->>Storage: Persist { index, indices }
+    Deck-->>App: Return quote[indices[index]]
+    App-->>User: Display Quote & Progress
+```
+
+#### 3. The Global "Surprise Me!" Deck (`GlobalQuoteManager`)
+
+The default category solves a common probability flaw in simplistic quote generators. If the engine first picked a random category and *then* a random quote, it would massively bias the results toward smaller categories. Conversely, simply flattening every file into one array biases the results toward the largest categories.
+
+To solve this, Quiply uses an ephemeral `GlobalQuoteManager` that mathematically normalizes representation. It samples exactly 15 random quotes from *every* active JSON quote file, aggregates them into a unified pool, and then securely extracts a fresh, perfectly blended subset of 100 quotes. 
+
+The `ShuffleDeck` then manages an integer map for this 100-quote subset. Once exhausted, a brand new permutation of 100 quotes is generated from scratch, meaning the "Random" mode stays endlessly fresh without repeating quotes within a session.
+
+```mermaid
+graph LR
+    A[Random 15 quotes from NO] --> D
+    B[Random 15 quotes from Love] --> D
+    C[Random 15 quotes from Chaos] --> D
+    D[Normalized Pool: ~120 quotes] -.->|Shuffle & Slice| E[100-Quote Master Deck]
+    E --> F[Served Sequentially to UI]
+```
+
+#### 4. Instant Blob Caching
+
+`picsum.photos` URLs aggressively redirect on every request. To prevent the background image and the Canvas download from loading two different photos, the image is fetched once via `fetch()`, converted to an immutable `blob:` URL, and instantly reused for both CSS rendering and Canvas manipulation.
+
+#### 5. Self-Healing State Recovery
+
+The core `refresh()` lifecycle is wrapped in a resilient recovery layer. If the engine encounters *any* runtime failure (such as parsing a corrupted `localStorage` state injected by a third-party extension), it immediately catches the error, triggers the `flushAll()` logic to wipe the broken storage, and seamlessly attempts a fresh retry without exposing a crash to the user.
 
 ### Deployment
 
