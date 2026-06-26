@@ -1,6 +1,6 @@
 ![Quiply](assets/logo.svg)
 
-# QUIPLY
+# QUIPLY - Tiny thoughts. Big personalities.
 
 > *Wit, wisdom, and wonderfully questionable life advice — beautifully presented.*
 

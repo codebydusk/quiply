@@ -36,14 +36,32 @@ body {
     pointer-events: none;
 }
 
+.loader-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    animation: pulseLogo 2s ease-in-out infinite;
+}
+
 .loader-logo {
     width: 20vw;
     max-width: 120px;
     min-width: 60px;
-    animation: pulseLogo 2s ease-in-out infinite;
     -webkit-user-select: none;
     user-select: none;
     pointer-events: none;
+}
+
+.loader-subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: clamp(1rem, 2vw, 1.3rem);
+    letter-spacing: 0.05em;
+    font-style: italic;
+    text-align: center;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    margin: 0;
 }
 
 @keyframes waterfall {
