@@ -3,13 +3,14 @@
  * Order here = order in the dropdown.
  */
 const CATEGORIES = [
+  { file: 'random', label: 'Random' },
   { file: 'bad_advice.json', label: 'Bad Advice' },
   { file: 'chaos.json', label: 'Chaos' },
   { file: 'emotional_damage.json', label: 'Emotional Damage' },
   { file: 'horoscope.json', label: 'Horoscope' },
   { file: 'insults.json', label: 'Insults' },
   { file: 'love.json', label: 'Love' },
-  { file: 'no.json', label: 'No.' },
+  { file: 'no.json', label: 'No' },
   { file: 'office_excuses.json', label: 'Office Excuses' },
 ];
 
@@ -18,11 +19,12 @@ const photo = document.getElementById('photo');
 const shimmer = document.getElementById('shimmer');
 const quoteEl = document.getElementById('quote');
 const refreshBtn = document.getElementById('refreshBtn');
+const copyBtn = document.getElementById('copyBtn');
 const categoryBtn = document.getElementById('categoryBtn');
 const dropdown = document.getElementById('dropdown');
 
 /* ── State ── */
-let currentCategory = CATEGORIES[0];
+let currentCategory = CATEGORIES.find(c => c.file === 'random') || CATEGORIES[0];
 const savedCategoryFile = localStorage.getItem('quiply_category');
 if (savedCategoryFile) {
   const found = CATEGORIES.find(c => c.file === savedCategoryFile);
@@ -169,13 +171,39 @@ async function refresh() {
   await loadImage();
 
   // 3. Only then fetch + show the new quote
-  const lines = await getLines(currentCategory.file);
+  let targetFile = currentCategory.file;
+  if (targetFile === 'random') {
+    const valid = CATEGORIES.filter(c => c.file !== 'random');
+    targetFile = valid[Math.floor(Math.random() * valid.length)].file;
+  }
+  const lines = await getLines(targetFile);
   const line = lines[Math.floor(Math.random() * lines.length)];
   quoteEl.textContent = `"${line}"`;
   requestAnimationFrame(() => quoteEl.classList.add('visible'));
 }
 
 refreshBtn.addEventListener('click', refresh);
+
+copyBtn.addEventListener('click', async () => {
+  let quoteText = quoteEl.textContent;
+  if (!quoteText) return;
+
+  // Remove surrounding quotation marks
+  if (quoteText.startsWith('"') && quoteText.endsWith('"')) {
+    quoteText = quoteText.slice(1, -1);
+  }
+
+  try {
+    await navigator.clipboard.writeText(quoteText);
+    const originalHTML = copyBtn.innerHTML;
+    copyBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+    setTimeout(() => {
+      copyBtn.innerHTML = originalHTML;
+    }, 1500);
+  } catch (err) {
+    console.error('Failed to copy text: ', err);
+  }
+});
 
 // Reload on significant resize (debounced)
 let resizeTimer;
