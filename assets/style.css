@@ -8,11 +8,13 @@
 }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Merriweather', serif;
     width: 100vw;
     height: 100dvh;
     overflow: hidden;
     background: #111;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 /* ── Waterfall shimmer ── */
@@ -68,7 +70,7 @@ body {
     width: 100%;
     height: 100%;
     background-image:
-        linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
         var(--bg-url, none);
     background-size: cover;
     background-position: center;
@@ -81,13 +83,7 @@ body {
 }
 
 /* ── Dark overlay ── */
-.overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 3;
-    background: rgba(0, 0, 0, .35);
-    pointer-events: none;
-}
+/* Removed: .bg-image already includes a linear-gradient darkening layer */
 
 /* ── Centered quote ── */
 .center-text {
@@ -111,8 +107,6 @@ body {
     max-width: 800px;
     line-height: 1.35;
     text-shadow: 0 2px 30px rgba(0, 0, 0, .5);
-    -webkit-user-select: none;
-    user-select: none;
     opacity: 0;
     transform: translateY(12px);
     transition: opacity .6s ease, transform .6s ease;
@@ -137,8 +131,6 @@ body {
     font-weight: 600;
     font-size: 1.3rem;
     letter-spacing: -0.02em;
-    -webkit-user-select: none;
-    user-select: none;
     text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
 }
 
@@ -282,8 +274,6 @@ body {
     color: rgba(255, 255, 255, 0.4);
     letter-spacing: 0.05em;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
-    -webkit-user-select: none;
-    user-select: none;
 }
 
 .footer a {
@@ -298,4 +288,8 @@ body {
 
 #noCredit {
     display: none;
+}
+
+#noCredit.visible {
+    display: inline;
 }
