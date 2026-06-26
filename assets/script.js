@@ -41,6 +41,42 @@ if (savedCategoryFile) {
 }
 
 let linesCache = {};   // { fileName: string[] }
+let shuffleQueues = {}; // { fileName: string[] } — per-category shuffle queues
+let lastShown = {};     // { fileName: string }  — last quote shown per category
+
+/**
+ * Fisher-Yates shuffle (in-place).
+ * Returns a new shuffled copy of the array.
+ */
+function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+/**
+ * Pull the next quote from a per-file shuffle queue.
+ * Reshuffles when exhausted, ensuring the last shown quote
+ * doesn't appear first in the new deck.
+ */
+function getNextQuote(lines, fileKey) {
+    if (!shuffleQueues[fileKey] || shuffleQueues[fileKey].length === 0) {
+        let deck = shuffle(lines);
+        // Avoid back-to-back across reshuffle boundary
+        if (lastShown[fileKey] && deck.length > 1 && deck[0] === lastShown[fileKey]) {
+            // Move the duplicate to a random later position
+            const swapIdx = 1 + Math.floor(Math.random() * (deck.length - 1));
+            [deck[0], deck[swapIdx]] = [deck[swapIdx], deck[0]];
+        }
+        shuffleQueues[fileKey] = deck;
+    }
+    const quote = shuffleQueues[fileKey].shift();
+    lastShown[fileKey] = quote;
+    return quote;
+}
 
 /* ── Build dropdown items ── */
 function buildDropdown() {
@@ -209,7 +245,8 @@ async function refresh() {
     noCredit.classList.toggle('visible', targetFile === 'no.json');
 
     const lines = await getLines(targetFile);
-    const line = lines[Math.floor(Math.random() * lines.length)];
+    const queueKey = currentCategory.file === 'random' ? 'random' : targetFile;
+    const line = getNextQuote(lines, queueKey);
     quoteEl.textContent = `"${line}"`;
     requestAnimationFrame(() => quoteEl.classList.add('visible'));
 }
