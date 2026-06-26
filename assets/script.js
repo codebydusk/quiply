@@ -431,10 +431,16 @@ downloadBtn.addEventListener('click', () => {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
     ctx.fillRect(0, 0, W, H);
 
+    // Adjust multipliers for portrait (mobile) vs landscape (desktop)
+    const isPortrait      = W < H;
+    const quoteMultiplier = isPortrait ? 0.055 : 0.035;
+    const maxWidthFactor  = isPortrait ? 0.85 : 0.70;
+    const brandMultiplier = isPortrait ? 0.016 : 0.009;
+
     // 3. Quote text
     const quoteText = quoteEl.textContent;
     if (quoteText) {
-        const fontSize = Math.max(Math.round(W * 0.035), 24);
+        const fontSize = Math.max(Math.round(W * quoteMultiplier), 28);
         ctx.font          = `400 ${fontSize}px 'Cormorant Garamond', serif`;
         ctx.fillStyle     = '#ffffff';
         ctx.textAlign     = 'center';
@@ -442,8 +448,8 @@ downloadBtn.addEventListener('click', () => {
         ctx.shadowColor   = 'rgba(0, 0, 0, 0.5)';
         ctx.shadowBlur    = 30;
 
-        // Word-wrap: greedily fill lines up to 70% of the image width
-        const maxWidth = W * 0.7;
+        // Word-wrap: greedily fill lines up to max width
+        const maxWidth = W * maxWidthFactor;
         const words = quoteText.split(' ');
         const lines = [];
         let currentLine = '';
@@ -468,7 +474,7 @@ downloadBtn.addEventListener('click', () => {
     }
 
     // 4. Branding — logo icon + text, centered as a group, at a subtle small size
-    const brandSize = Math.max(Math.round(W * 0.009), 8);  // smaller than before (was 1.2%)
+    const brandSize = Math.max(Math.round(W * brandMultiplier), 12);
     const brandText = 'QUIPLY · codebydusk.github.io/quiply';
     ctx.font         = `400 ${brandSize}px 'Martel Sans', sans-serif`;
     ctx.fillStyle    = 'rgba(255, 255, 255, 0.35)';
@@ -491,14 +497,44 @@ downloadBtn.addEventListener('click', () => {
     ctx.fillText(brandText, groupX + iconSize + gap, brandY);
     ctx.textAlign = 'center'; // restore default
 
-    // 5. Download — filename uses local time in DDMMYYYYHHMMSS format
-    const link = document.createElement('a');
+    // 5. Download / Share — filename uses local time in DDMMYYYYHHMMSS format
     const d    = new Date();
     const pad  = n => String(n).padStart(2, '0');
     const ts   = `${pad(d.getDate())}${pad(d.getMonth() + 1)}${d.getFullYear()}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
-    link.download = `quiply-${ts}.png`;
-    link.href     = canvas.toDataURL('image/png');
-    link.click();
+    const filename = `quiply-${ts}.png`;
+
+    const fallbackDownload = () => {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href     = canvas.toDataURL('image/png');
+        link.click();
+    };
+
+    // If on mobile and Web Share API is supported, share it instead of direct download
+    if (window.innerWidth <= 600 && navigator.canShare) {
+        canvas.toBlob(async (blob) => {
+            if (!blob) return fallbackDownload();
+            const file = new File([blob], filename, { type: 'image/png' });
+            if (navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Quiply',
+                        text: 'A wonderfully questionable quote from Quiply.'
+                    });
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.error('Share failed:', err);
+                        fallbackDownload();
+                    }
+                }
+            } else {
+                fallbackDownload();
+            }
+        }, 'image/png');
+    } else {
+        fallbackDownload();
+    }
 });
 
 // Reload the background image on significant window resize (debounced to 500ms)

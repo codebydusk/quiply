@@ -177,6 +177,10 @@ body {
     flex-shrink: 0;
 }
 
+.icon-share {
+    display: none;
+}
+
 .icon-btn:hover {
     background: rgba(255, 255, 255, .25);
     transform: scale(1.08);
@@ -349,5 +353,13 @@ body {
     /* Push footer below the toolbar */
     .footer {
         bottom: 8px;
+    }
+
+    .icon-download {
+        display: none;
+    }
+
+    .icon-share {
+        display: block;
     }
 }

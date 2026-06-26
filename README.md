@@ -1,4 +1,7 @@
-# Quiply
+<div align="center">
+  <img src="assets/logo.svg" alt="Quiply Logo" width="120" height="120" />
+  <h1>Quiply</h1>
+</div>
 
 > *Wit, wisdom, and wonderfully questionable life advice — beautifully presented.*
 
@@ -13,7 +16,7 @@ Quiply is a minimalist quote app that pairs curated, hand-picked quotes with stu
 - 🖼️ **Immersive backgrounds** — hi-res photos from [Lorem Picsum](https://picsum.photos/), sized to your screen and pixel density
 - 🎲 **Categorized & shuffled** — every quote shown exactly once before reshuffling, with no back-to-back repeats
 - 📋 **Copy** — one tap to grab the quote text to your clipboard
-- 📥 **Download** — saves a ready-to-share PNG with the quote, the photo, and a subtle Quiply watermark
+- 📥 **Download / Share** — on desktop, saves a ready-to-share PNG. On mobile, instantly opens the native share sheet with the image.
 - ⌨️ **Keyboard shortcuts** — press **Space** or **R** to refresh instantly
 - 💾 **Remembers your category** — your last selection is saved locally
 - 🌙 **Dark, glassmorphic UI** — clean, unobtrusive, and fully responsive
@@ -27,7 +30,7 @@ Quiply is a minimalist quote app that pairs curated, hand-picked quotes with stu
 1. Open the app.
 2. Pick a category from the top-right menu (or let **Random** surprise you).
 3. Hit the **↻ refresh** button (or press **Space** / **R**) for a new quote + background.
-4. Like what you see? Hit **copy** to grab the text, or **↓ download** to save it as a shareable PNG.
+4. Like what you see? Hit **copy** to grab the text, or **↓ download / share** to save it as a PNG (or share it directly on mobile).
 
 **Categories:**
 
