@@ -414,7 +414,7 @@ copyBtn.addEventListener('click', async () => {
  *  4. Quiply branding   (small text at bottom center)
  *  5. Trigger download  (local-time filename: quiply-DDMMYYYYHHMMSS.png)
  */
-downloadBtn.addEventListener('click', () => {
+downloadBtn.addEventListener('click', async () => {
     if (!currentImage) return; // Safety guard — image not yet loaded
 
     const canvas = document.createElement('canvas');
@@ -502,36 +502,44 @@ downloadBtn.addEventListener('click', () => {
     const pad  = n => String(n).padStart(2, '0');
     const ts   = `${pad(d.getDate())}${pad(d.getMonth() + 1)}${d.getFullYear()}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
     const filename = `quiply-${ts}.png`;
+    const dataUrl  = canvas.toDataURL('image/png');
 
     const fallbackDownload = () => {
         const link = document.createElement('a');
         link.download = filename;
-        link.href     = canvas.toDataURL('image/png');
+        link.href     = dataUrl;
         link.click();
     };
 
     // If on mobile and Web Share API is supported, share it instead of direct download
     if (window.innerWidth <= 600 && navigator.canShare) {
-        canvas.toBlob(async (blob) => {
-            if (!blob) return fallbackDownload();
+        try {
+            // Convert dataUrl to Blob synchronously to preserve the click gesture
+            const arr = dataUrl.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) u8arr[n] = bstr.charCodeAt(n);
+            const blob = new Blob([u8arr], { type: mime });
+            
             const file = new File([blob], filename, { type: 'image/png' });
+
             if (navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        files: [file],
-                        title: 'Quiply',
-                        text: 'A wonderfully questionable quote from Quiply.'
-                    });
-                } catch (err) {
-                    if (err.name !== 'AbortError') {
-                        console.error('Share failed:', err);
-                        fallbackDownload();
-                    }
-                }
+                await navigator.share({
+                    files: [file],
+                    title: 'Quiply',
+                    text: 'A wonderfully questionable quote from Quiply.'
+                });
             } else {
                 fallbackDownload();
             }
-        }, 'image/png');
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                console.error('Share failed:', err);
+                fallbackDownload();
+            }
+        }
     } else {
         fallbackDownload();
     }
