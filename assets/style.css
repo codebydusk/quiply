@@ -8,7 +8,7 @@
 }
 
 body {
-    font-family: 'Merriweather', serif;
+    font-family: 'Martel Sans', sans-serif;
     width: 100vw;
     height: 100dvh;
     overflow: hidden;
@@ -17,14 +17,17 @@ body {
     user-select: none;
 }
 
-/* ── Waterfall shimmer ── */
+/* ── Loading Animation ── */
 .shimmer {
     position: fixed;
     inset: 0;
-    z-index: 1;
-    background: linear-gradient(180deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%);
+    z-index: 999;
+    background: linear-gradient(180deg, #121214 0%, #1a1a1e 50%, #121214 100%);
     background-size: 100% 200%;
-    animation: waterfall 1.4s ease-in-out infinite;
+    animation: waterfall 2s ease-in-out infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: opacity .8s ease;
 }
 
@@ -33,32 +36,31 @@ body {
     pointer-events: none;
 }
 
+.loader-logo {
+    width: 20vw;
+    max-width: 120px;
+    min-width: 60px;
+    animation: pulseLogo 2s ease-in-out infinite;
+    -webkit-user-select: none;
+    user-select: none;
+    pointer-events: none;
+}
+
 @keyframes waterfall {
-    0% {
-        background-position: 0% 0%;
-    }
-
-    100% {
-        background-position: 0% 200%;
-    }
+    0% { background-position: 0% 0%; }
+    100% { background-position: 0% 200%; }
 }
 
-.shimmer::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .04) 50%, transparent);
-    background-size: 200% 100%;
-    animation: sheen 1.8s ease-in-out infinite;
-}
-
-@keyframes sheen {
-    0% {
-        background-position: 200% 0;
+@keyframes pulseLogo {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(0.95);
+        filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
     }
-
-    100% {
-        background-position: -200% 0;
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+        filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.4));
     }
 }
 
@@ -98,7 +100,7 @@ body {
 }
 
 .center-text h1 {
-    font-family: 'Merriweather', serif;
+    font-family: 'Cormorant Garamond', serif;
     font-size: clamp(1.4rem, 4vw, 3rem);
     font-weight: 400;
     color: #fff;
@@ -124,7 +126,7 @@ body {
     left: 24px;
     z-index: 10;
     display: flex;
-    font-family: 'Merriweather', serif;
+    font-family: 'Cormorant Garamond', serif;
     align-items: center;
     gap: 12px;
     color: #fff;
@@ -228,6 +230,22 @@ body {
     transform: translateY(0) scale(1);
 }
 
+.dropdown-group-header {
+    padding: 10px 14px 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .35);
+    border-top: 1px solid rgba(255, 255, 255, .08);
+    margin-top: 4px;
+}
+
+.dropdown-group-header:first-child {
+    border-top: none;
+    margin-top: 0;
+}
+
 .dropdown button {
     width: 100%;
     padding: 10px 14px;
@@ -269,7 +287,6 @@ body {
     left: 50%;
     transform: translateX(-50%);
     z-index: 10;
-    font-family: 'Merriweather', serif;
     font-size: 0.65rem;
     color: rgba(255, 255, 255, 0.4);
     letter-spacing: 0.05em;

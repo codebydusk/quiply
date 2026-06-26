@@ -1,17 +1,23 @@
 /**
- * Category manifest — maps file names to display labels.
- * Order here = order in the dropdown.
+ * Category manifest — grouped for display in the dropdown.
+ * Items with only a `group` key are rendered as section headers.
  */
 const CATEGORIES = [
     { file: 'random', label: 'Random' },
-    { file: 'bad_advice.json', label: 'Bad Advice' },
+
+    { group: 'Daily' },
+    { file: 'no.json', label: 'NO' },
     { file: 'chaos.json', label: 'Chaos' },
-    { file: 'emotional_damage.json', label: 'Emotional Damage' },
-    { file: 'horoscope.json', label: 'Horoscope' },
-    { file: 'insults.json', label: 'Insults' },
-    { file: 'love.json', label: 'Love' },
-    { file: 'no.json', label: 'No' },
-    { file: 'office_excuses.json', label: 'Office Excuses' },
+    { file: 'bad_advice.json', label: 'Questionable Decisions' },
+    { file: 'emotional_damage.json', label: 'Character Development' },
+
+    { group: 'Delulu' },
+    { file: 'love.json', label: 'Hopeless Romantic' },
+
+    { group: 'Everyday Chaos' },
+    { file: 'office_excuses.json', label: 'Corporate Survival' },
+    { file: 'insults.json', label: 'Friendly Fire' },
+    { file: 'horoscope.json', label: 'Today\'s Lies' },
 ];
 
 /* ── DOM refs ── */
@@ -25,7 +31,7 @@ const dropdown = document.getElementById('dropdown');
 const noCredit = document.getElementById('noCredit');
 
 /* ── State ── */
-let currentCategory = CATEGORIES.find(c => c.file === 'random') || CATEGORIES[0];
+let currentCategory = CATEGORIES.find(c => c.file === 'random') || CATEGORIES.find(c => c.file);
 const savedCategoryFile = localStorage.getItem('quiply_category');
 if (savedCategoryFile) {
     const found = CATEGORIES.find(c => c.file === savedCategoryFile);
@@ -40,6 +46,16 @@ let linesCache = {};   // { fileName: string[] }
 function buildDropdown() {
     dropdown.innerHTML = '';
     CATEGORIES.forEach((cat) => {
+        // Group header
+        if (cat.group) {
+            const header = document.createElement('div');
+            header.className = 'dropdown-group-header';
+            header.textContent = cat.group;
+            header.setAttribute('aria-hidden', 'true');
+            dropdown.appendChild(header);
+            return;
+        }
+
         const btn = document.createElement('button');
         btn.setAttribute('role', 'option');
         btn.setAttribute('aria-selected', cat.file === currentCategory.file ? 'true' : 'false');
@@ -79,16 +95,28 @@ function closeDropdown() {
 }
 
 function handleDropdownKeydown(e, currentBtn) {
+    // Helper: find the next/prev focusable button, skipping group headers
+    function nextBtn(el) {
+        let s = el.nextElementSibling;
+        while (s && s.tagName !== 'BUTTON') s = s.nextElementSibling;
+        return s;
+    }
+    function prevBtn(el) {
+        let s = el.previousElementSibling;
+        while (s && s.tagName !== 'BUTTON') s = s.previousElementSibling;
+        return s;
+    }
+
     if (e.key === 'Escape') {
         closeDropdown();
         categoryBtn.focus();
         e.preventDefault();
     } else if (e.key === 'ArrowDown') {
-        const next = currentBtn.nextElementSibling;
+        const next = nextBtn(currentBtn);
         if (next) next.focus();
         e.preventDefault();
     } else if (e.key === 'ArrowUp') {
-        const prev = currentBtn.previousElementSibling;
+        const prev = prevBtn(currentBtn);
         if (prev) prev.focus();
         e.preventDefault();
     }
@@ -174,7 +202,7 @@ async function refresh() {
     // 3. Only then fetch + show the new quote
     let targetFile = currentCategory.file;
     if (targetFile === 'random') {
-        const valid = CATEGORIES.filter(c => c.file !== 'random');
+        const valid = CATEGORIES.filter(c => c.file && c.file !== 'random');
         targetFile = valid[Math.floor(Math.random() * valid.length)].file;
     }
 
