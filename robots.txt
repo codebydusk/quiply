@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://codebydusk.github.io/quiply/sitemap.xml

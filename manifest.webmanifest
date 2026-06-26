@@ -1,0 +1,22 @@
+{
+    "name": "Quiply",
+    "short_name": "Quiply",
+    "description": "A curated library of original quotes, wit, wisdom, and wonderfully questionable life advice.",
+    "start_url": "/quiply/",
+    "scope": "/quiply/",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#111111",
+    "theme_color": "#111111",
+    "lang": "en",
+    "icons": [
+        {
+            "src": "assets/logo.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": ["entertainment", "lifestyle"],
+    "screenshots": []
+}

@@ -26,6 +26,7 @@ const shimmer = document.getElementById('shimmer');
 const quoteEl = document.getElementById('quote');
 const refreshBtn = document.getElementById('refreshBtn');
 const copyBtn = document.getElementById('copyBtn');
+const downloadBtn = document.getElementById('downloadBtn');
 const categoryBtn = document.getElementById('categoryBtn');
 const dropdown = document.getElementById('dropdown');
 const noCredit = document.getElementById('noCredit');
@@ -40,9 +41,10 @@ if (savedCategoryFile) {
     }
 }
 
-let linesCache = {};   // { fileName: string[] }
+let linesCache = {};    // { fileName: string[] }
 let shuffleQueues = {}; // { fileName: string[] } — per-category shuffle queues
 let lastShown = {};     // { fileName: string }  — last quote shown per category
+let currentImage = null; // Holds the loaded Image object for screenshot use
 
 /**
  * Fisher-Yates shuffle (in-place).
@@ -204,26 +206,37 @@ function getDimensions() {
 }
 
 function loadImage() {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
         shimmer.classList.remove('hidden');
         photo.classList.remove('loaded');
 
         const { w, h } = getDimensions();
         const url = `https://picsum.photos/${w}/${h}?random=${Date.now()}`;
 
-        const tmp = new Image();
-        tmp.onload = () => {
-            photo.style.setProperty('--bg-url', `url(${url})`);
-            requestAnimationFrame(() => {
-                photo.classList.add('loaded');
-                shimmer.classList.add('hidden');
-                resolve();
-            });
-        };
-        tmp.onerror = () => {
+        try {
+            // Fetch once, convert to blob URL — no redirect mismatch
+            const res = await fetch(url);
+            const blob = await res.blob();
+            const blobUrl = URL.createObjectURL(blob);
+
+            const tmp = new Image();
+            tmp.onload = () => {
+                currentImage = tmp;
+                photo.style.setProperty('--bg-url', `url(${blobUrl})`);
+                requestAnimationFrame(() => {
+                    photo.classList.add('loaded');
+                    shimmer.classList.add('hidden');
+                    resolve();
+                });
+            };
+            tmp.onerror = () => {
+                URL.revokeObjectURL(blobUrl);
+                setTimeout(() => loadImage().then(resolve), 1500);
+            };
+            tmp.src = blobUrl;
+        } catch {
             setTimeout(() => loadImage().then(resolve), 1500);
-        };
-        tmp.src = url;
+        }
     });
 }
 
@@ -279,6 +292,78 @@ let resizeTimer;
 window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(loadImage, 500);
+});
+
+/* ── Download: draw current state to canvas (instant, no re-fetch) ── */
+downloadBtn.addEventListener('click', () => {
+    if (!currentImage) return;
+
+    const canvas = document.createElement('canvas');
+    const W = currentImage.naturalWidth;
+    const H = currentImage.naturalHeight;
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    // 1. Draw the already-loaded background image
+    ctx.drawImage(currentImage, 0, 0, W, H);
+
+    // 2. Dark overlay (matches the CSS gradient)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, 0, W, H);
+
+    // 3. Draw the quote text (centered)
+    const quoteText = quoteEl.textContent;
+    if (quoteText) {
+        const fontSize = Math.max(Math.round(W * 0.035), 24);
+        ctx.font = `400 ${fontSize}px 'Cormorant Garamond', serif`;
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 30;
+
+        // Word-wrap the quote
+        const maxWidth = W * 0.7;
+        const words = quoteText.split(' ');
+        const lines = [];
+        let currentLine = '';
+        for (const word of words) {
+            const testLine = currentLine ? `${currentLine} ${word}` : word;
+            if (ctx.measureText(testLine).width > maxWidth && currentLine) {
+                lines.push(currentLine);
+                currentLine = word;
+            } else {
+                currentLine = testLine;
+            }
+        }
+        if (currentLine) lines.push(currentLine);
+
+        const lineHeight = fontSize * 1.4;
+        const totalHeight = lines.length * lineHeight;
+        const startY = (H - totalHeight) / 2 + lineHeight / 2;
+
+        lines.forEach((line, i) => {
+            ctx.fillText(line, W / 2, startY + i * lineHeight);
+        });
+
+        // Reset shadow for branding
+        ctx.shadowBlur = 0;
+    }
+
+    // 4. "from quiply" branding at bottom center
+    const brandSize = Math.max(Math.round(W * 0.012), 10);
+    ctx.font = `400 ${brandSize}px 'Martel Sans', sans-serif`;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('QUIPLY | https://codebydusk.github.io/quiply', W / 2, H - Math.round(H * 0.02));
+
+    // 5. Trigger download
+    const link = document.createElement('a');
+    link.download = 'quiply-quote.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
 });
 
 /* ── Init ── */
