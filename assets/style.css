@@ -297,6 +297,7 @@ body {
     color: rgba(255, 255, 255, 0.4);
     letter-spacing: 0.05em;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    white-space: nowrap;
 }
 
 .footer a {
@@ -315,4 +316,24 @@ body {
 
 #noCredit.visible {
     display: inline;
+}
+
+/* ── Mobile layout ── */
+@media (max-width: 600px) {
+    /* Move toolbar from top-right to bottom-right so it doesn't overlap the logo */
+    .toolbar {
+        top: auto;
+        bottom: 48px;
+        right: 16px;
+    }
+
+    .logo {
+        left: 16px;
+        top: 16px;
+    }
+
+    /* Push footer up above the toolbar stack */
+    .footer {
+        bottom: 8px;
+    }
 }
