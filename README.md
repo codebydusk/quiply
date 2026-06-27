@@ -141,9 +141,9 @@ sequenceDiagram
 
 The default category solves a common probability flaw in simplistic quote generators. If the engine first picked a random category and *then* a random quote, it would massively bias the results toward smaller categories. Conversely, simply flattening every file into one array biases the results toward the largest categories.
 
-To solve this, Quiply uses an ephemeral `GlobalQuoteManager` that mathematically normalizes representation. It samples exactly 15 random quotes from *every* active JSON quote file, aggregates them into a unified pool, and then securely extracts a fresh, perfectly blended subset of 100 quotes.
+To solve this, Quiply uses an ephemeral `GlobalQuoteManager` that mathematically normalizes representation. It samples exactly 15 random quotes from *every* active JSON quote file, aggregates them into a unified pool, and then securely extracts a fresh, perfectly blended subset of 100 quotes. 
 
-The `ShuffleDeck` then manages an integer map for this 100-quote subset. Once exhausted, a brand new permutation of 100 quotes is generated from scratch, meaning the "Random" mode stays endlessly fresh without repeating quotes within a session.
+The `ShuffleDeck` then manages an integer map for this 100-quote subset. This generated master deck is cached in `localStorage` along with a timestamp and remains locked in for the entire day. At midnight (or if the user manages to exhaust all 100 quotes in a single day), the cache is invalidated and a brand new permutation of 100 quotes is generated from scratch.
 
 ```mermaid
 graph LR

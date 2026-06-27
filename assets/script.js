@@ -302,6 +302,8 @@ function selectCategory(cat) {
  */
 function flushAll() {
     localStorage.removeItem(SHUFFLE_STORAGE_KEY);
+    localStorage.removeItem('quiply_todays_deck');
+    globalQuoteManager.isInitialized = false;
     for (const key in activeDecks) {
         delete activeDecks[key];
     }
@@ -429,7 +431,24 @@ class GlobalQuoteManager {
         this.isInitialized = false;
     }
 
-    async init() {
+    async init(forceNew = false) {
+        const today = new Date().toDateString();
+
+        if (!forceNew) {
+            try {
+                const savedData = localStorage.getItem('quiply_todays_deck');
+                if (savedData) {
+                    const parsed = JSON.parse(savedData);
+                    if (parsed.date === today && parsed.quotes && parsed.quotes.length === 100) {
+                        this.globalQuotes = parsed.quotes;
+                        this.isInitialized = true;
+                        return; 
+                    }
+                }
+            } catch (e) {
+                // Ignore parse errors, just generate a new one
+            }
+        }
         // Find all real data files (exclude headers and 'random' itself)
         const validFiles = CATEGORIES
             .filter(c => c.file && c.file !== 'random')
@@ -464,18 +483,36 @@ class GlobalQuoteManager {
         // 3. Take exactly 100 quotes to form the global deck
         this.globalQuotes = pool.slice(0, 100);
 
+        // Save this new deck to localStorage with today's date
+        try {
+            localStorage.setItem('quiply_todays_deck', JSON.stringify({
+                date: today,
+                quotes: this.globalQuotes
+            }));
+            
+            // Because this is a brand new pool of quotes, we MUST reset the shuffle deck progress
+            // otherwise the user's old index (e.g., index 45) will carry over to this new array!
+            const deck = getDeck('random', true);
+            deck._generateAndShuffle(100);
+            deck._saveState();
+        } catch (e) {
+            // Silently fail if localStorage is full or disabled
+        }
+
         this.isInitialized = true;
     }
 
     async next() {
         const deck = getDeck('random', true);
         
+        let forceNew = false;
         // If the deck is fully exhausted, force a fresh regeneration of the 100-quote pool
         if (this.isInitialized && deck.indices.length > 0 && deck.index >= deck.indices.length) {
             this.isInitialized = false;
+            forceNew = true;
         }
 
-        if (!this.isInitialized) await this.init();
+        if (!this.isInitialized) await this.init(forceNew);
         
         return deck.next(this.globalQuotes);
     }
