@@ -12,12 +12,26 @@ A minimalist quote player with hand-curated packs, fullscreen photography, and a
 
 ## Table of contents
 
+- [Highlights](#highlights)
 - [Quick start](#quick-start)
-- [Features](#features)
 - [Project structure](#project-structure)
 - [Contributing](#contributing-please-help-growing-the-quote-database)
 - [For nerds](#for-nerds--architecture--implementation-details)
+- [Acknowledgements](#acknowledgements)
 - [License](#license)
+
+---
+
+## Highlights
+
+- Persistent shuffle engine (no repeats until a deck is exhausted)
+- Global "Today's Quiply" mode with mathematically fair sampling
+- Hand-curated quote packs (humor, chaos, love, workplace, etc.)
+- Immersive full-bleed photography via Lorem Picsum
+- One-click copy + randomized success messages
+- Download/share rendered PNG (mobile-friendly)
+- Keyboard shortcuts (`Space`, `R`)
+- Zero dependencies — plain HTML, CSS, and JavaScript
 
 ---
 
@@ -40,20 +54,6 @@ python -m http.server 8080
 ```
 
 Then open <http://localhost:8080>
-
----
-
-## Features
-
-- **Persistent Shuffle Engine** - Every category behaves like a shuffled deck of cards. Quotes never repeat until the deck is exhausted.
-- **Today's Quiply** - A mathematically fair global shuffle where every quote has an equal chance of appearing.
-- **Original Quote Packs** - Thousands of curated quotes across humor, romance, chaos, workplace survival, and more.
-- **Immersive Photography** - Beautiful full-screen backgrounds fetched dynamically from Lorem Picsum.
-- **One-click Copy** - Complete with randomized copy-success messages.
-- **Download / Share** - Save a beautifully rendered PNG or share directly on supported mobile browsers.
-- **Persistent Progress** - Your categories, decks, and discoveries continue exactly where you left them.
-- **Keyboard Shortcuts** - Press **Space** or **R** for the next quote.
-- **Zero Dependencies** - Pure HTML, CSS and JavaScript.
 
 ---
 
