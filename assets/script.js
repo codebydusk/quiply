@@ -182,8 +182,6 @@ class ShuffleDeck {
         const len = quotesArray.length;
         if (len === 0) return null;
 
-        const categoryName = this.id === 'random' ? 'Random' : (CATEGORIES.find(c => c.file === this.id)?.label || this.id);
-
         if (this.indices.length === 0) {
             const restored = this._loadState(len);
             if (!restored) {
@@ -421,9 +419,10 @@ async function getLines(fileName) {
    ═══════════════════════════════════════════ */
 
 /**
- * A dedicated component that merges all available quote packs into a single
- * global deck, shuffles them evenly, and guarantees every quote is shown 
- * exactly once before any repeats occur.
+ * A dedicated component that samples 15 quotes per category into a normalized
+ * pool, shuffles it, and deals the top 100 as a single "Today's Quiply" deck.
+ * The generated 100-quote deck is persisted in localStorage keyed to the current
+ * date, so the same deck is served all day and resets automatically at midnight.
  */
 class GlobalQuoteManager {
     constructor() {
@@ -442,7 +441,7 @@ class GlobalQuoteManager {
                     if (parsed.date === today && parsed.quotes && parsed.quotes.length === 100) {
                         this.globalQuotes = parsed.quotes;
                         this.isInitialized = true;
-                        return; 
+                        return;
                     }
                 }
             } catch (e) {
@@ -463,13 +462,13 @@ class GlobalQuoteManager {
         validFiles.forEach((file, i) => {
             const lines = responses[i];
             const categoryQuotes = lines.map(text => ({ text, file }));
-            
+
             // Cryptographically shuffle this category's quotes
             for (let j = categoryQuotes.length - 1; j > 0; j--) {
                 const k = Math.floor(SecureRandom.float() * (j + 1));
                 [categoryQuotes[j], categoryQuotes[k]] = [categoryQuotes[k], categoryQuotes[j]];
             }
-            
+
             // Take the first 15 (or all, if less than 15)
             pool = pool.concat(categoryQuotes.slice(0, 15));
         });
@@ -489,10 +488,10 @@ class GlobalQuoteManager {
                 date: today,
                 quotes: this.globalQuotes
             }));
-            
+
             // Because this is a brand new pool of quotes, we MUST reset the shuffle deck progress
             // otherwise the user's old index (e.g., index 45) will carry over to this new array!
-            const deck = getDeck('random', true);
+            const deck = getDeck('random');
             deck._generateAndShuffle(100);
             deck._saveState();
         } catch (e) {
@@ -503,8 +502,8 @@ class GlobalQuoteManager {
     }
 
     async next() {
-        const deck = getDeck('random', true);
-        
+        const deck = getDeck('random');
+
         let forceNew = false;
         // If the deck is fully exhausted, force a fresh regeneration of the 100-quote pool
         if (this.isInitialized && deck.indices.length > 0 && deck.index >= deck.indices.length) {
@@ -513,7 +512,7 @@ class GlobalQuoteManager {
         }
 
         if (!this.isInitialized) await this.init(forceNew);
-        
+
         return deck.next(this.globalQuotes);
     }
 }
@@ -550,20 +549,20 @@ function getDimensions() {
  *
  * @returns {Promise<void>} Resolves when the image is visible on screen.
  */
-function loadImage() {
-    return new Promise(async (resolve) => {
-        shimmer.classList.remove('hidden');
-        photo.classList.remove('loaded');
+async function loadImage() {
+    shimmer.classList.remove('hidden');
+    photo.classList.remove('loaded');
 
-        const { w, h } = getDimensions();
-        const url = `https://picsum.photos/${w}/${h}?random=${SecureRandom.uuid()}`;
+    const { w, h } = getDimensions();
+    const url = `https://picsum.photos/${w}/${h}?random=${SecureRandom.uuid()}`;
 
-        try {
-            // Single fetch → blob URL — guarantees the CSS bg and canvas use identical pixels
-            const res = await fetch(url);
-            const blob = await res.blob();
-            const blobUrl = URL.createObjectURL(blob);
+    try {
+        // Single fetch → blob URL — guarantees the CSS bg and canvas use identical pixels
+        const res = await fetch(url);
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
 
+        await new Promise((resolve, reject) => {
             const tmp = new Image();
             tmp.onload = () => {
                 currentImage = tmp; // Store for reuse in the download handler
@@ -576,14 +575,15 @@ function loadImage() {
             };
             tmp.onerror = () => {
                 URL.revokeObjectURL(blobUrl); // Clean up the failed blob
-                setTimeout(() => loadImage().then(resolve), 1500); // Retry after 1.5s
+                reject(new Error('Image decode failed'));
             };
             tmp.src = blobUrl;
-        } catch {
-            // Network error — retry after 1.5s
-            setTimeout(() => loadImage().then(resolve), 1500);
-        }
-    });
+        });
+    } catch {
+        // Network or decode error — retry after 1.5s
+        await new Promise(r => setTimeout(r, 1500));
+        return loadImage();
+    }
 }
 
 /* ═══════════════════════════════════════════
@@ -619,7 +619,9 @@ async function refresh() {
 
             const randDeck = getDeck('random');
             const dp = document.getElementById('dropdownProgress');
-            if (dp) dp.textContent = `${randDeck.index} discovered, ${globalQuoteManager.globalQuotes.length} remaining!`;
+            const total = globalQuoteManager.globalQuotes.length;
+            const remaining = Math.max(total - randDeck.index, 0);
+            if (dp) dp.textContent = `${randDeck.index} discovered, ${remaining} remaining!`;
         } else {
             // Specific Category Mode: Pull from the category's persistent ShuffleDeck
             const lines = await getLines(targetFile);
@@ -627,7 +629,8 @@ async function refresh() {
             line = deck.next(lines);
 
             const dp = document.getElementById('dropdownProgress');
-            if (dp) dp.textContent = `${deck.index} discovered, ${lines.length} remaining!`;
+            const remaining = Math.max(lines.length - deck.index, 0);
+            if (dp) dp.textContent = `${deck.index} discovered, ${remaining} remaining!`;
         }
 
         // Show/hide the "no-as-a-service" footer credit for the NO category
@@ -635,7 +638,7 @@ async function refresh() {
 
         quoteEl.textContent = `"${line}"`;
         requestAnimationFrame(() => quoteEl.classList.add('visible')); // Trigger CSS fade-in
-        
+
         isRecovering = false; // Reset recovery state on success
     } catch (e) {
         if (!isRecovering) {
@@ -800,8 +803,8 @@ downloadBtn.addEventListener('click', async () => {
             if (navigator.canShare({ files: [file] })) {
                 await navigator.share({
                     files: [file],
-                    title: 'Quiply',
-                    text: 'A wonderfully questionable quote from Quiply.'
+                    title: `Quiply | ${currentCategory.label}`,
+                    text: 'A wonderfully questionable quote from Quiply. Find more at: https://codebydusk.github.io/quiply/'
                 });
             } else {
                 fallbackDownload();

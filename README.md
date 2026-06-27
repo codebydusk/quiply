@@ -33,6 +33,8 @@ A minimalist quote player with hand-curated packs, fullscreen photography, and a
 - Keyboard shortcuts (`Space`, `R`)
 - Zero dependencies — plain HTML, CSS, and JavaScript
 
+> Opening the category menu shows your real-time progress through the active deck — e.g. `5 of 100 · 95 remaining!` for Today's Quiply, or `12 discovered, 88 remaining!` for a specific category.
+
 ---
 
 ## Quick start
